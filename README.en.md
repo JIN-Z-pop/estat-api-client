@@ -6,6 +6,7 @@ Access **4,552 indicators** from Japan's Social and Demographic Statistics Syste
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Windows 11](https://img.shields.io/badge/Tested%20on-Windows%2011-blue.svg)](https://www.microsoft.com/windows/windows-11)
 
 **[日本語版 README](README.md)**
 
@@ -261,4 +262,10 @@ MIT License - see [LICENSE](LICENSE)
 
 ---
 
-Built with ❤️ by [JIN-Z-pop](https://github.com/JIN-Z-pop)
+## Author
+
+**JIN-Z-pop and his merry AI brothers**
+
+---
+
+Built with ❤️ by [JIN-Z-pop](https://github.com/JIN-Z-pop) and his merry AI brothers
