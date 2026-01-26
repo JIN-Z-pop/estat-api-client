@@ -1,0 +1,2721 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e-Stat 統計データ検索</title>
+    <!-- Chart.js for visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Hiragino Sans', sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        /* ヘッダー */
+        .header {
+            background: linear-gradient(135deg, #1a237e, #3949ab);
+            color: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 13px;
+            opacity: 0.85;
+        }
+
+        /* メインコンテナ */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 検索パネル */
+        .search-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .search-panel h2 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3949ab;
+        }
+
+        /* v7.0: 検索条件コンテナ */
+        .conditions-container {
+            margin-bottom: 20px;
+        }
+
+        /* v7.0: 検索条件カード */
+        .condition-card {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .condition-card:hover {
+            border-color: #3949ab;
+        }
+
+        .condition-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .condition-number {
+            background: #3949ab;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .condition-field-select {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .condition-field-select:focus {
+            outline: none;
+            border-color: #3949ab;
+        }
+
+        .btn-remove-condition {
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .btn-remove-condition:hover {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        /* 指標チェックボックスリスト */
+        .indicator-list {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .indicator-list.empty {
+            color: #999;
+            text-align: center;
+            padding: 20px;
+            font-size: 13px;
+        }
+
+        .indicator-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .indicator-list-header .title {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .indicator-list-header .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .indicator-list-header button {
+            padding: 3px 10px;
+            font-size: 11px;
+            background: #f5f5f5;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .indicator-list-header button:hover {
+            background: #e8eaed;
+        }
+
+        .indicator-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            font-size: 13px;
+        }
+
+        .indicator-item.child {
+            padding-left: 20px;
+            color: #666;
+        }
+
+        .indicator-item input {
+            cursor: pointer;
+        }
+
+        .indicator-count {
+            font-size: 11px;
+            color: #3949ab;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        /* 条件追加ボタン */
+        .btn-add-condition {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px;
+            background: white;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-add-condition:hover {
+            border-color: #3949ab;
+            color: #3949ab;
+            background: #f8f9ff;
+        }
+
+        /* 共通フィルター */
+        .common-filters {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            padding-top: 16px;
+            border-top: 1px solid #eee;
+            margin-top: 16px;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #3949ab;
+        }
+
+        .year-range {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .year-range span {
+            color: #666;
+        }
+
+        .year-range input {
+            width: 80px;
+            text-align: center;
+        }
+
+        .btn-search {
+            padding: 10px 32px;
+            background: linear-gradient(135deg, #3949ab, #1a237e);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-search:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(57, 73, 171, 0.4);
+        }
+
+        .btn-search:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 選択サマリー */
+        .selection-summary {
+            background: #e3f2fd;
+            border-radius: 6px;
+            padding: 10px 16px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #1565c0;
+            display: none;
+        }
+
+        .selection-summary.show {
+            display: block;
+        }
+
+        /* 結果パネル */
+        .results-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: #fafafa;
+            border-bottom: 1px solid #eee;
+        }
+
+        .results-header h3 {
+            font-size: 15px;
+            color: #333;
+        }
+
+        .results-info {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .results-count {
+            font-size: 13px;
+            color: #666;
+            background: #e8eaed;
+            padding: 4px 12px;
+            border-radius: 12px;
+        }
+
+        .btn-download {
+            padding: 6px 16px;
+            background: white;
+            color: #3949ab;
+            border: 1px solid #3949ab;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-download:hover {
+            background: #3949ab;
+            color: white;
+        }
+
+        /* データテーブル */
+        .table-container {
+            max-height: 600px;
+            overflow: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .data-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-table th {
+            background: #3949ab;
+            color: white;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 500;
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .data-table th:hover {
+            background: #303f9f;
+        }
+
+        .data-table th.sort-asc::after {
+            content: ' ▲';
+            font-size: 10px;
+        }
+
+        .data-table th.sort-desc::after {
+            content: ' ▼';
+            font-size: 10px;
+        }
+
+        .data-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .data-table tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .data-table tr:nth-child(even):hover {
+            background: #f0f0f0;
+        }
+
+        .data-table .rank-cell {
+            text-align: center;
+            font-weight: 600;
+            color: #666;
+            width: 60px;
+        }
+
+        .data-table .value-cell {
+            text-align: right;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 500;
+        }
+
+        /* ローディング */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 60px;
+            color: #666;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #3949ab;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* エラー・空メッセージ */
+        .message {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+        }
+
+        .message.error {
+            color: #c62828;
+        }
+
+        .message-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        /* トースト通知 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            max-width: 500px;
+            text-align: center;
+            opacity: 0;
+            transition: all 0.4s ease;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #e53935, #c62828);
+        }
+
+        /* フッター */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 12px;
+        }
+
+        /* カスタム地域選択パネル */
+        .custom-region-panel {
+            display: none;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+
+        .custom-region-panel.show {
+            display: block;
+        }
+
+        .region-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .region-actions button {
+            padding: 4px 12px;
+            font-size: 12px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .region-actions button:hover {
+            background: #e8eaed;
+        }
+
+        .prefecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 4px;
+        }
+
+        .prefecture-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            background: white;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .prefecture-item:hover {
+            background: #e8eaed;
+        }
+
+        .prefecture-item input {
+            cursor: pointer;
+        }
+
+        .region-count {
+            font-size: 11px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        /* 地域２：市区町村選択パネル */
+        .municipality-panel {
+            display: none;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+
+        .municipality-panel.show {
+            display: block;
+        }
+
+        .municipality-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .municipality-panel-header h4 {
+            font-size: 13px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .municipality-search {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .municipality-search:focus {
+            outline: none;
+            border-color: #3949ab;
+        }
+
+        .municipality-selector {
+            display: flex;
+            gap: 12px;
+            height: 300px;
+        }
+
+        .municipality-pref-list {
+            width: 180px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            overflow-y: auto;
+        }
+
+        .municipality-pref-item {
+            padding: 8px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .municipality-pref-item:hover {
+            background: #e8eaed;
+        }
+
+        .municipality-pref-item.selected {
+            background: #e3f2fd;
+            color: #1565c0;
+            font-weight: 500;
+        }
+
+        .municipality-pref-item .count {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .municipality-city-list {
+            flex: 1;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .municipality-city-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .municipality-city-item:hover {
+            background: #f5f5f5;
+        }
+
+        .municipality-city-item input {
+            cursor: pointer;
+        }
+
+        .municipality-city-item.selected {
+            background: #e3f2fd;
+        }
+
+        .municipality-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #eee;
+        }
+
+        .municipality-footer .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .municipality-footer button {
+            padding: 4px 12px;
+            font-size: 12px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .municipality-footer button:hover {
+            background: #e8eaed;
+        }
+
+        .municipality-count {
+            font-size: 12px;
+            color: #1565c0;
+            font-weight: 500;
+        }
+
+        .selected-municipalities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .selected-municipality-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+
+        .selected-municipality-tag .remove {
+            cursor: pointer;
+            color: #1976d2;
+        }
+
+        .selected-municipality-tag .remove:hover {
+            color: #c62828;
+        }
+
+        /* 地域スコープ切り替え */
+        .region-scope-selector {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        .region-scope-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .region-scope-option input {
+            cursor: pointer;
+        }
+
+        /* 表示設定パネル */
+        .pivot-settings {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .pivot-settings h2 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .pivot-row {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .pivot-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pivot-group label.title {
+            font-size: 13px;
+            font-weight: 500;
+            color: #666;
+            min-width: 50px;
+        }
+
+        .axis-options {
+            display: flex;
+            gap: 16px;
+        }
+
+        .axis-option {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .axis-option input {
+            cursor: pointer;
+        }
+
+        .pivot-filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .pivot-filter-group label {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .pivot-filter-group select {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        /* v8.0: 解析パネル */
+        .analysis-panel {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .analysis-tabs {
+            display: flex;
+            background: #f5f5f5;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .analysis-tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            font-size: 14px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .analysis-tab:hover {
+            background: #e8eaed;
+            color: #333;
+        }
+
+        .analysis-tab.active {
+            background: white;
+            color: #3949ab;
+            border-bottom-color: #3949ab;
+            font-weight: 500;
+        }
+
+        .analysis-content {
+            padding: 24px;
+            display: none;
+        }
+
+        .analysis-content.active {
+            display: block;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .chart-controls label {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .chart-controls select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        /* 相関行列 */
+        .correlation-matrix {
+            overflow-x: auto;
+        }
+
+        .correlation-table {
+            border-collapse: collapse;
+            font-size: 13px;
+            width: 100%;
+        }
+
+        .correlation-table th,
+        .correlation-table td {
+            padding: 10px 12px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            min-width: 80px;
+        }
+
+        .correlation-table th {
+            background: #f5f5f5;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .correlation-table td {
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .correlation-positive {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            color: #1565c0;
+        }
+
+        .correlation-negative {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            color: #c62828;
+        }
+
+        .correlation-neutral {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        /* ダウンロードボタングループ */
+        .download-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-download-menu {
+            position: relative;
+        }
+
+        .download-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 100;
+            display: none;
+            min-width: 180px;
+        }
+
+        .download-dropdown.show {
+            display: block;
+        }
+
+        .download-dropdown button {
+            display: block;
+            width: 100%;
+            padding: 10px 16px;
+            text-align: left;
+            background: none;
+            border: none;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .download-dropdown button:hover {
+            background: #f5f5f5;
+        }
+
+        .download-dropdown button:first-child {
+            border-radius: 6px 6px 0 0;
+        }
+
+        .download-dropdown button:last-child {
+            border-radius: 0 0 6px 6px;
+        }
+
+        /* 統計サマリ */
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stats-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stats-card .label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .stats-card .value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #3949ab;
+        }
+
+        .stats-card .sub {
+            font-size: 11px;
+            color: #999;
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .common-filters {
+                flex-direction: column;
+            }
+
+            .filter-group {
+                min-width: 100%;
+            }
+
+            .data-table {
+                font-size: 12px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 8px 10px;
+            }
+
+            .prefecture-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .municipality-selector {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .municipality-pref-list {
+                width: 100%;
+                max-height: 150px;
+            }
+
+            .municipality-city-list {
+                max-height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>e-Stat 統計データ検索</h1>
+        <p>日本政府統計ポータル - 社会・人口統計体系（4,552指標）- v8.0 解析・可視化</p>
+    </header>
+
+    <main class="container">
+        <!-- 検索パネル -->
+        <section class="search-panel">
+            <h2>検索条件</h2>
+
+            <!-- 選択サマリー -->
+            <div class="selection-summary" id="selectionSummary"></div>
+
+            <!-- v7.0: 検索条件コンテナ -->
+            <div class="conditions-container" id="conditionsContainer">
+                <!-- 条件カードがここに動的生成 -->
+            </div>
+
+            <!-- 条件追加ボタン -->
+            <button type="button" class="btn-add-condition" onclick="addCondition()">
+                <span style="font-size: 20px;">＋</span>
+                条件を追加
+            </button>
+
+            <!-- 共通フィルター -->
+            <div class="common-filters">
+                <div class="filter-group">
+                    <label>年度</label>
+                    <div class="year-range">
+                        <input type="number" id="yearStart" value="2020" min="1980" max="2024">
+                        <span>〜</span>
+                        <input type="number" id="yearEnd" value="2023" min="1980" max="2024">
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label>地域スコープ</label>
+                    <div class="region-scope-selector">
+                        <label class="region-scope-option">
+                            <input type="radio" name="regionScope" value="prefecture" checked onchange="onRegionScopeChange()">
+                            都道府県
+                        </label>
+                        <label class="region-scope-option">
+                            <input type="radio" name="regionScope" value="municipality" onchange="onRegionScopeChange()">
+                            市区町村
+                        </label>
+                    </div>
+                </div>
+                <div class="filter-group" id="prefectureFilterGroup">
+                    <label>地域１（都道府県）</label>
+                    <select id="regionPreset" onchange="onRegionPresetChange()">
+                        <option value="all">全国（47都道府県）</option>
+                        <option value="tokyo_metro">首都圏（8都県）</option>
+                        <option value="osaka_metro">近畿圏（6府県）</option>
+                        <option value="nagoya_metro">中京圏（3県）</option>
+                        <option value="three_metro">三大都市圏</option>
+                        <option value="hokkaido_tohoku">北海道・東北</option>
+                        <option value="kanto">関東</option>
+                        <option value="chubu">中部</option>
+                        <option value="kinki">近畿</option>
+                        <option value="chugoku">中国</option>
+                        <option value="shikoku">四国</option>
+                        <option value="kyushu_okinawa">九州・沖縄</option>
+                        <option value="custom">カスタム選択</option>
+                    </select>
+                </div>
+                <button class="btn-search" id="btnSearch" onclick="searchData()">検索</button>
+            </div>
+
+            <!-- カスタム地域選択パネル（地域１用） -->
+            <div class="custom-region-panel" id="customRegionPanel">
+                <div class="region-actions">
+                    <button onclick="selectAllPrefectures()">全選択</button>
+                    <button onclick="clearAllPrefectures()">全解除</button>
+                </div>
+                <div class="prefecture-grid" id="prefectureGrid"></div>
+                <div class="region-count">選択中: <span id="selectedCount">0</span> 都道府県</div>
+            </div>
+
+            <!-- 地域２：市区町村選択パネル -->
+            <div class="municipality-panel" id="municipalityPanel">
+                <div class="municipality-panel-header">
+                    <h4>地域２（市区町村）</h4>
+                </div>
+                <input type="text" class="municipality-search" id="municipalitySearch"
+                       placeholder="🔍 市区町村を検索..." oninput="onMunicipalitySearch(this.value)">
+                <div class="municipality-selector">
+                    <div class="municipality-pref-list" id="municipalityPrefList">
+                        <!-- 都道府県リスト -->
+                    </div>
+                    <div class="municipality-city-list" id="municipalityCityList">
+                        <div style="color: #999; text-align: center; padding: 40px;">
+                            ← 都道府県を選択してください
+                        </div>
+                    </div>
+                </div>
+                <div class="municipality-footer">
+                    <div class="actions">
+                        <button onclick="clearAllMunicipalities()">全解除</button>
+                    </div>
+                    <div class="municipality-count">
+                        選択中: <span id="selectedMunicipalityCount">0</span> 市区町村
+                    </div>
+                </div>
+                <div class="selected-municipalities" id="selectedMunicipalitiesTags">
+                    <!-- 選択された市区町村のタグ表示 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 表示設定パネル -->
+        <section class="pivot-settings" id="pivotSettings" style="display: none;">
+            <h2>表示設定</h2>
+            <div class="pivot-row">
+                <div class="pivot-group">
+                    <label class="title">行軸:</label>
+                    <div class="axis-options">
+                        <label class="axis-option">
+                            <input type="radio" name="rowAxis" value="region" checked onchange="onPivotConfigChange()">
+                            地域
+                        </label>
+                        <label class="axis-option">
+                            <input type="radio" name="rowAxis" value="year" onchange="onPivotConfigChange()">
+                            年度
+                        </label>
+                        <label class="axis-option">
+                            <input type="radio" name="rowAxis" value="indicator" onchange="onPivotConfigChange()">
+                            指標
+                        </label>
+                    </div>
+                </div>
+                <div class="pivot-group">
+                    <label class="title">列軸:</label>
+                    <div class="axis-options">
+                        <label class="axis-option">
+                            <input type="radio" name="colAxis" value="region" onchange="onPivotConfigChange()">
+                            地域
+                        </label>
+                        <label class="axis-option">
+                            <input type="radio" name="colAxis" value="year" onchange="onPivotConfigChange()">
+                            年度
+                        </label>
+                        <label class="axis-option">
+                            <input type="radio" name="colAxis" value="indicator" checked onchange="onPivotConfigChange()">
+                            指標
+                        </label>
+                    </div>
+                </div>
+                <div class="pivot-filter-group">
+                    <label id="filterLabel">フィルタ（年度）:</label>
+                    <select id="filterSelect" onchange="onFilterChange()">
+                        <option value="">--</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- 結果パネル -->
+        <section class="results-panel">
+            <div class="results-header">
+                <h3 id="resultsTitle">検索結果</h3>
+                <div class="results-info">
+                    <span class="results-count" id="resultsCount">0件</span>
+                    <div class="btn-download-menu">
+                        <button class="btn-download" onclick="toggleDownloadMenu()">📥 ダウンロード ▾</button>
+                        <div class="download-dropdown" id="downloadDropdown">
+                            <button onclick="downloadCSVRaw()">📄 CSV（生データ）</button>
+                            <button onclick="downloadCSVPivot()">📊 CSV（ピボット形式）</button>
+                            <button onclick="downloadExcel()">📗 Excel（.xlsx）</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <p>データを取得中...</p>
+            </div>
+
+            <div class="message" id="emptyMessage">
+                <div class="message-icon">🔍</div>
+                <p>検索条件を追加して「検索」ボタンをクリックしてください</p>
+            </div>
+
+            <div class="table-container" id="tableContainer" style="display: none;">
+                <table class="data-table" id="dataTable">
+                    <thead id="tableHead"></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- v8.0: 解析パネル -->
+        <section class="analysis-panel" id="analysisPanel" style="display: none;">
+            <div class="analysis-tabs">
+                <button class="analysis-tab active" onclick="switchAnalysisTab('correlation')">📊 相関分析</button>
+                <button class="analysis-tab" onclick="switchAnalysisTab('scatter')">⚫ 散布図</button>
+                <button class="analysis-tab" onclick="switchAnalysisTab('timeseries')">📈 時系列</button>
+                <button class="analysis-tab" onclick="switchAnalysisTab('bar')">📊 棒グラフ比較</button>
+            </div>
+
+            <!-- 相関分析タブ -->
+            <div class="analysis-content active" id="tab-correlation">
+                <h4 style="margin-bottom: 16px; color: #333;">指標間の相関係数（ピアソン相関）</h4>
+                <div class="correlation-matrix" id="correlationMatrix">
+                    <p style="color: #999; text-align: center;">2つ以上の指標を選択すると相関行列が表示されます</p>
+                </div>
+            </div>
+
+            <!-- 散布図タブ -->
+            <div class="analysis-content" id="tab-scatter">
+                <div class="chart-controls">
+                    <label>X軸: <select id="scatterX" onchange="updateScatterPlot()"></select></label>
+                    <label>Y軸: <select id="scatterY" onchange="updateScatterPlot()"></select></label>
+                    <label>年度: <select id="scatterYear" onchange="updateScatterPlot()"></select></label>
+                </div>
+                <div class="chart-container">
+                    <canvas id="scatterChart"></canvas>
+                </div>
+                <div id="scatterStats" class="stats-summary"></div>
+            </div>
+
+            <!-- 時系列タブ -->
+            <div class="analysis-content" id="tab-timeseries">
+                <div class="chart-controls">
+                    <label>地域: <select id="timeseriesRegion" onchange="updateTimeseriesChart()"></select></label>
+                    <span style="margin-left: 20px; color: #666;">表示指標:</span>
+                </div>
+                <div id="timeseriesIndicators" style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 6px; display: flex; flex-wrap: wrap; gap: 15px;"></div>
+                <div class="chart-container">
+                    <canvas id="timeseriesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 棒グラフ比較タブ -->
+            <div class="analysis-content" id="tab-bar">
+                <div class="chart-controls">
+                    <label>指標: <select id="barIndicator" onchange="updateBarChart()"></select></label>
+                    <label>年度: <select id="barYear" onchange="updateBarChart()"></select></label>
+                    <label>上位:
+                        <select id="barTopN" onchange="updateBarChart()">
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="47" selected>全て(47)</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="chart-container" style="height: 500px;">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>データ出典: e-Stat（政府統計の総合窓口）</p>
+    </footer>
+
+    <!-- トースト -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // APIベースURL
+        const API_BASE = 'http://localhost:5099';
+
+        // 現在のデータ
+        let currentData = [];
+        let currentIndicator = '';
+        let sortColumn = null;
+        let sortDirection = 'desc';
+
+        // v7.0: 検索条件管理
+        let conditionCounter = 0;
+        let conditions = {};  // { id: { fieldCode, indicators: [], indicatorNames: {} } }
+        let fieldsCache = []; // 分野キャッシュ
+
+        // v9.0: ローカルJSON指標設定（61指標・13分野）
+        let indicatorsConfig = null;
+
+        // v10.0: 市区町村選択（地域２）
+        let regionScope = 'prefecture';  // 'prefecture' | 'municipality'
+        let selectedMunicipalities = new Map();  // code -> {name, prefName}
+        let municipalitiesCache = {};  // prefCode -> [{code, name}]
+        let currentSelectedPref = null;  // 市区町村パネルで選択中の都道府県
+
+        // ピボットテーブル設定
+        let pivotConfig = {
+            rowAxis: 'region',
+            colAxis: 'indicator',
+            filterAxis: 'year',
+            filterValue: null
+        };
+
+        // 生データ（3軸構造）
+        let rawData = [];
+        let availableIndicatorNames = {};
+
+        // 47都道府県コード
+        const ALL_PREFECTURES = [
+            "01","02","03","04","05","06","07","08","09","10",
+            "11","12","13","14","15","16","17","18","19","20",
+            "21","22","23","24","25","26","27","28","29","30",
+            "31","32","33","34","35","36","37","38","39","40",
+            "41","42","43","44","45","46","47"
+        ];
+
+        // 47都道府県名
+        const PREFECTURE_NAMES = {
+            "01": "北海道", "02": "青森県", "03": "岩手県", "04": "宮城県", "05": "秋田県",
+            "06": "山形県", "07": "福島県", "08": "茨城県", "09": "栃木県", "10": "群馬県",
+            "11": "埼玉県", "12": "千葉県", "13": "東京都", "14": "神奈川県", "15": "新潟県",
+            "16": "富山県", "17": "石川県", "18": "福井県", "19": "山梨県", "20": "長野県",
+            "21": "岐阜県", "22": "静岡県", "23": "愛知県", "24": "三重県", "25": "滋賀県",
+            "26": "京都府", "27": "大阪府", "28": "兵庫県", "29": "奈良県", "30": "和歌山県",
+            "31": "鳥取県", "32": "島根県", "33": "岡山県", "34": "広島県", "35": "山口県",
+            "36": "徳島県", "37": "香川県", "38": "愛媛県", "39": "高知県", "40": "福岡県",
+            "41": "佐賀県", "42": "長崎県", "43": "熊本県", "44": "大分県", "45": "宮崎県",
+            "46": "鹿児島県", "47": "沖縄県"
+        };
+
+        // 地域プリセット
+        const REGION_PRESETS = {
+            all: { name: '全国（47都道府県）', codes: ALL_PREFECTURES },
+            tokyo_metro: { name: '首都圏', codes: ['08','09','10','11','12','13','14','19'] },
+            osaka_metro: { name: '近畿圏', codes: ['25','26','27','28','29','30'] },
+            nagoya_metro: { name: '中京圏', codes: ['21','23','24'] },
+            three_metro: { name: '三大都市圏', codes: ['08','09','10','11','12','13','14','19','21','23','24','25','26','27','28','29','30'] },
+            hokkaido_tohoku: { name: '北海道・東北', codes: ['01','02','03','04','05','06','07'] },
+            kanto: { name: '関東', codes: ['08','09','10','11','12','13','14'] },
+            chubu: { name: '中部', codes: ['15','16','17','18','19','20','21','22','23'] },
+            kinki: { name: '近畿', codes: ['24','25','26','27','28','29','30'] },
+            chugoku: { name: '中国', codes: ['31','32','33','34','35'] },
+            shikoku: { name: '四国', codes: ['36','37','38','39'] },
+            kyushu_okinawa: { name: '九州・沖縄', codes: ['40','41','42','43','44','45','46','47'] },
+            custom: { name: 'カスタム選択', codes: [] }
+        };
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadFields();
+            renderPrefectureCheckboxes();
+            renderMunicipalityPrefList();  // v10.0: 市区町村用都道府県リスト
+            // 最初の条件を追加
+            addCondition();
+        });
+
+        // 分野を読み込み（v9.0: ローカルJSONから）
+        async function loadFields() {
+            try {
+                // ローカルJSONから4,552指標設定を読み込み
+                const response = await fetch('config/estat_indicators.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                indicatorsConfig = await response.json();
+
+                // fieldsCache形式に変換（13分野）
+                // v2.0: JSONに含まれるcount値を直接使用（4,552指標対応）
+                fieldsCache = Object.entries(indicatorsConfig.fields).map(([code, info]) => {
+                    return {
+                        code: code,
+                        name: info.name_ja,
+                        count: info.count || Object.values(indicatorsConfig.indicators)
+                            .filter(ind => ind.field === code).length
+                    };
+                }).sort((a, b) => a.code.localeCompare(b.code));
+
+                const totalIndicators = Object.keys(indicatorsConfig.indicators).length;
+                console.log(`Loaded ${fieldsCache.length} fields, ${totalIndicators} indicators from local JSON`);
+            } catch (error) {
+                console.error('Failed to load fields:', error);
+                showToast('分野の読み込みに失敗しました', true);
+            }
+        }
+
+        // v7.0: 条件を追加
+        function addCondition() {
+            conditionCounter++;
+            const id = conditionCounter;
+            conditions[id] = { fieldCode: '', indicators: [], indicatorNames: {} };
+
+            const container = document.getElementById('conditionsContainer');
+            const card = document.createElement('div');
+            card.className = 'condition-card';
+            card.id = `condition-${id}`;
+            card.innerHTML = `
+                <div class="condition-header">
+                    <span class="condition-number">${Object.keys(conditions).length}</span>
+                    <select class="condition-field-select" onchange="onConditionFieldChange(${id}, this.value)">
+                        <option value="">-- 分野を選択 --</option>
+                        ${fieldsCache.map(f => `<option value="${f.code}">${f.code}: ${f.name} (${f.count}件)</option>`).join('')}
+                    </select>
+                    <button type="button" class="btn-remove-condition" onclick="removeCondition(${id})" title="この条件を削除">✕</button>
+                </div>
+                <div class="indicator-list empty" id="indicators-${id}">
+                    分野を選択すると指標が表示されます
+                </div>
+            `;
+            container.appendChild(card);
+            updateConditionNumbers();
+        }
+
+        // v7.0: 条件を削除
+        function removeCondition(id) {
+            if (Object.keys(conditions).length <= 1) {
+                showToast('最低1つの条件が必要です');
+                return;
+            }
+            delete conditions[id];
+            document.getElementById(`condition-${id}`).remove();
+            updateConditionNumbers();
+            updateSelectionSummary();
+        }
+
+        // 条件番号を更新
+        function updateConditionNumbers() {
+            const cards = document.querySelectorAll('.condition-card');
+            cards.forEach((card, idx) => {
+                card.querySelector('.condition-number').textContent = idx + 1;
+            });
+        }
+
+        // v7.0/v9.0: 分野変更時（ローカルJSONからフィルタリング）
+        function onConditionFieldChange(conditionId, fieldCode) {
+            const indicatorContainer = document.getElementById(`indicators-${conditionId}`);
+            conditions[conditionId].fieldCode = fieldCode;
+            conditions[conditionId].indicators = [];
+            conditions[conditionId].indicatorNames = {};
+
+            if (!fieldCode) {
+                indicatorContainer.className = 'indicator-list empty';
+                indicatorContainer.innerHTML = '分野を選択すると指標が表示されます';
+                updateSelectionSummary();
+                return;
+            }
+
+            indicatorContainer.className = 'indicator-list';
+
+            // v9.0: ローカルJSONからフィルタリング（API呼び出しなし）
+            if (!indicatorsConfig || !indicatorsConfig.indicators) {
+                indicatorContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #c62828;">指標設定が読み込まれていません</div>';
+                return;
+            }
+
+            // 選択された分野の指標をフィルタリング
+            const indicators = Object.entries(indicatorsConfig.indicators)
+                .filter(([key, ind]) => ind.field === fieldCode)
+                .map(([key, ind]) => ({
+                    cdCat01: ind.cdCat01,
+                    name: ind.name_ja,
+                    key: key
+                }))
+                .sort((a, b) => a.cdCat01.localeCompare(b.cdCat01));
+
+            if (indicators.length > 0) {
+                let html = `
+                    <div class="indicator-list-header">
+                        <span class="title">指標を選択 <span class="indicator-count" id="count-${conditionId}"></span></span>
+                        <div class="actions">
+                            <button type="button" onclick="selectAllInCondition(${conditionId})">全選択</button>
+                            <button type="button" onclick="clearAllInCondition(${conditionId})">全解除</button>
+                        </div>
+                    </div>
+                    <div id="checkboxes-${conditionId}">
+                `;
+
+                indicators.forEach(ind => {
+                    conditions[conditionId].indicatorNames[ind.cdCat01] = ind.name;
+                    html += `
+                        <label class="indicator-item">
+                            <input type="checkbox" value="${ind.cdCat01}" data-condition="${conditionId}" onchange="onIndicatorChange(${conditionId})">
+                            ${ind.cdCat01}: ${ind.name}
+                        </label>
+                    `;
+                });
+
+                html += '</div>';
+                indicatorContainer.innerHTML = html;
+            } else {
+                indicatorContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">指標がありません</div>';
+            }
+
+            updateSelectionSummary();
+        }
+
+        // v7.0: 指標選択変更時
+        function onIndicatorChange(conditionId) {
+            const checkboxes = document.querySelectorAll(`#checkboxes-${conditionId} input:checked`);
+            conditions[conditionId].indicators = Array.from(checkboxes).map(cb => cb.value);
+
+            // カウント更新
+            const countSpan = document.getElementById(`count-${conditionId}`);
+            if (countSpan) {
+                const count = conditions[conditionId].indicators.length;
+                countSpan.textContent = count > 0 ? `(${count}件)` : '';
+            }
+
+            updateSelectionSummary();
+        }
+
+        // 条件内の全選択
+        function selectAllInCondition(conditionId) {
+            document.querySelectorAll(`#checkboxes-${conditionId} input`).forEach(cb => cb.checked = true);
+            onIndicatorChange(conditionId);
+        }
+
+        // 条件内の全解除
+        function clearAllInCondition(conditionId) {
+            document.querySelectorAll(`#checkboxes-${conditionId} input`).forEach(cb => cb.checked = false);
+            onIndicatorChange(conditionId);
+        }
+
+        // v7.0: 選択サマリーを更新
+        function updateSelectionSummary() {
+            const summary = document.getElementById('selectionSummary');
+            let totalIndicators = 0;
+            const parts = [];
+
+            for (const [id, cond] of Object.entries(conditions)) {
+                if (cond.indicators.length > 0) {
+                    const fieldName = fieldsCache.find(f => f.code === cond.fieldCode)?.name || cond.fieldCode;
+                    parts.push(`${fieldName}(${cond.indicators.length}件)`);
+                    totalIndicators += cond.indicators.length;
+                }
+            }
+
+            if (totalIndicators > 0) {
+                summary.textContent = `選択中: ${parts.join(' + ')} = 合計 ${totalIndicators} 指標`;
+                summary.classList.add('show');
+            } else {
+                summary.classList.remove('show');
+            }
+        }
+
+        // v7.0: 全指標を取得（全条件から）
+        function getAllSelectedIndicators() {
+            const allIndicators = [];
+            availableIndicatorNames = {};
+
+            for (const [id, cond] of Object.entries(conditions)) {
+                cond.indicators.forEach(code => {
+                    if (!allIndicators.find(i => i.code === code)) {
+                        allIndicators.push({
+                            code: code,
+                            name: cond.indicatorNames[code] || code
+                        });
+                        availableIndicatorNames[code] = cond.indicatorNames[code] || code;
+                    }
+                });
+            }
+
+            return allIndicators;
+        }
+
+        // ピボット設定変更時の処理
+        function onPivotConfigChange() {
+            const rowAxis = document.querySelector('input[name="rowAxis"]:checked').value;
+            const colAxis = document.querySelector('input[name="colAxis"]:checked').value;
+
+            if (rowAxis === colAxis) {
+                showToast('行軸と列軸は異なる軸を選択してください');
+                document.querySelector(`input[name="colAxis"][value="${pivotConfig.colAxis}"]`).checked = true;
+                return;
+            }
+
+            pivotConfig.rowAxis = rowAxis;
+            pivotConfig.colAxis = colAxis;
+
+            const axes = ['region', 'year', 'indicator'];
+            pivotConfig.filterAxis = axes.find(a => a !== rowAxis && a !== colAxis);
+
+            updateFilterLabel();
+
+            if (rawData.length > 0) {
+                updateFilterDropdown();
+                renderPivotTable();
+            }
+        }
+
+        function updateFilterLabel() {
+            const labels = {
+                region: 'フィルタ（地域）:',
+                year: 'フィルタ（年度）:',
+                indicator: 'フィルタ（指標）:'
+            };
+            document.getElementById('filterLabel').textContent = labels[pivotConfig.filterAxis];
+        }
+
+        function updateFilterDropdown() {
+            const select = document.getElementById('filterSelect');
+            let values = [];
+            let displayName = (v) => v;
+
+            switch (pivotConfig.filterAxis) {
+                case 'region':
+                    values = [...new Set(rawData.map(d => d.region))].sort();
+                    displayName = (code) => PREFECTURE_NAMES[code] || code;
+                    break;
+                case 'year':
+                    values = [...new Set(rawData.map(d => d.year))].sort((a, b) => b - a);
+                    displayName = (y) => `${y}年`;
+                    break;
+                case 'indicator':
+                    values = [...new Set(rawData.map(d => d.indicator))];
+                    displayName = (code) => availableIndicatorNames[code] || code;
+                    break;
+            }
+
+            select.innerHTML = values.map(v =>
+                `<option value="${v}">${displayName(v)}</option>`
+            ).join('');
+
+            if (values.length > 0) {
+                pivotConfig.filterValue = values[0];
+                select.value = pivotConfig.filterValue;
+            }
+        }
+
+        function onFilterChange() {
+            pivotConfig.filterValue = document.getElementById('filterSelect').value;
+            if (rawData.length > 0) {
+                renderPivotTable();
+            }
+        }
+
+        // 都道府県チェックボックスを描画
+        function renderPrefectureCheckboxes() {
+            const grid = document.getElementById('prefectureGrid');
+            let html = '';
+            ALL_PREFECTURES.forEach(code => {
+                html += `
+                    <label class="prefecture-item">
+                        <input type="checkbox" value="${code}" onchange="updateSelectedCount()">
+                        ${PREFECTURE_NAMES[code]}
+                    </label>
+                `;
+            });
+            grid.innerHTML = html;
+        }
+
+        // v10.0: 地域スコープ切り替え
+        function onRegionScopeChange() {
+            const scope = document.querySelector('input[name="regionScope"]:checked').value;
+            regionScope = scope;
+
+            const prefGroup = document.getElementById('prefectureFilterGroup');
+            const customPanel = document.getElementById('customRegionPanel');
+            const munPanel = document.getElementById('municipalityPanel');
+
+            if (scope === 'prefecture') {
+                prefGroup.style.display = '';
+                customPanel.classList.remove('show');
+                if (document.getElementById('regionPreset').value === 'custom') {
+                    customPanel.classList.add('show');
+                }
+                munPanel.classList.remove('show');
+            } else {
+                prefGroup.style.display = 'none';
+                customPanel.classList.remove('show');
+                munPanel.classList.add('show');
+            }
+        }
+
+        // v10.0: 市区町村用都道府県リスト描画
+        function renderMunicipalityPrefList() {
+            const list = document.getElementById('municipalityPrefList');
+            let html = '';
+            ALL_PREFECTURES.forEach(code => {
+                html += `
+                    <div class="municipality-pref-item" data-code="${code}" onclick="selectMunicipalityPref('${code}')">
+                        <span>${PREFECTURE_NAMES[code]}</span>
+                        <span class="count" id="munCount-${code}">-</span>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
+        }
+
+        // v10.0: 市区町村用都道府県選択
+        async function selectMunicipalityPref(prefCode) {
+            // 選択状態更新
+            document.querySelectorAll('.municipality-pref-item').forEach(el => {
+                el.classList.toggle('selected', el.dataset.code === prefCode);
+            });
+            currentSelectedPref = prefCode;
+
+            // 市区町村リスト取得
+            const cityList = document.getElementById('municipalityCityList');
+            cityList.innerHTML = '<div style="color: #999; text-align: center; padding: 40px;">読み込み中...</div>';
+
+            try {
+                if (!municipalitiesCache[prefCode]) {
+                    const response = await fetch(`${API_BASE}/api/prefectures/${prefCode}/municipalities`);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const data = await response.json();
+                    municipalitiesCache[prefCode] = data.municipalities || [];
+                    // カウント更新
+                    const countEl = document.getElementById(`munCount-${prefCode}`);
+                    if (countEl) countEl.textContent = municipalitiesCache[prefCode].length;
+                }
+
+                renderMunicipalityCityList(prefCode);
+            } catch (error) {
+                console.error('Failed to load municipalities:', error);
+                cityList.innerHTML = '<div style="color: #c62828; text-align: center; padding: 40px;">読み込みに失敗しました</div>';
+            }
+        }
+
+        // v10.0: 市区町村リスト描画
+        function renderMunicipalityCityList(prefCode, filterText = '') {
+            const cityList = document.getElementById('municipalityCityList');
+            const cities = municipalitiesCache[prefCode] || [];
+
+            const filtered = filterText
+                ? cities.filter(c => c.name.includes(filterText))
+                : cities;
+
+            if (filtered.length === 0) {
+                cityList.innerHTML = '<div style="color: #999; text-align: center; padding: 40px;">該当する市区町村がありません</div>';
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(city => {
+                const isSelected = selectedMunicipalities.has(city.code);
+                html += `
+                    <label class="municipality-city-item ${isSelected ? 'selected' : ''}">
+                        <input type="checkbox" value="${city.code}"
+                               ${isSelected ? 'checked' : ''}
+                               onchange="toggleMunicipalitySelection('${city.code}', '${city.name}', '${PREFECTURE_NAMES[prefCode]}', this.checked)">
+                        ${city.name}
+                    </label>
+                `;
+            });
+            cityList.innerHTML = html;
+        }
+
+        // v10.0: 市区町村選択切り替え
+        function toggleMunicipalitySelection(code, name, prefName, isSelected) {
+            if (isSelected) {
+                selectedMunicipalities.set(code, { name, prefName });
+            } else {
+                selectedMunicipalities.delete(code);
+            }
+            updateMunicipalityCount();
+            renderSelectedMunicipalityTags();
+        }
+
+        // v10.0: 市区町村カウント更新
+        function updateMunicipalityCount() {
+            document.getElementById('selectedMunicipalityCount').textContent = selectedMunicipalities.size;
+        }
+
+        // v10.0: 選択された市区町村タグ表示
+        function renderSelectedMunicipalityTags() {
+            const container = document.getElementById('selectedMunicipalitiesTags');
+            if (selectedMunicipalities.size === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            selectedMunicipalities.forEach((info, code) => {
+                html += `
+                    <span class="selected-municipality-tag">
+                        ${info.prefName} ${info.name}
+                        <span class="remove" onclick="removeMunicipality('${code}')">&times;</span>
+                    </span>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // v10.0: 市区町村削除
+        function removeMunicipality(code) {
+            selectedMunicipalities.delete(code);
+            updateMunicipalityCount();
+            renderSelectedMunicipalityTags();
+            // チェックボックス更新
+            if (currentSelectedPref) {
+                renderMunicipalityCityList(currentSelectedPref, document.getElementById('municipalitySearch').value);
+            }
+        }
+
+        // v10.0: 市区町村全解除
+        function clearAllMunicipalities() {
+            selectedMunicipalities.clear();
+            updateMunicipalityCount();
+            renderSelectedMunicipalityTags();
+            if (currentSelectedPref) {
+                renderMunicipalityCityList(currentSelectedPref, document.getElementById('municipalitySearch').value);
+            }
+        }
+
+        // v10.0: 市区町村検索
+        function onMunicipalitySearch(query) {
+            if (currentSelectedPref) {
+                renderMunicipalityCityList(currentSelectedPref, query);
+            } else if (query.length >= 2) {
+                // 全国検索
+                searchMunicipalitiesGlobal(query);
+            }
+        }
+
+        // v10.0: 全国市区町村検索
+        async function searchMunicipalitiesGlobal(query) {
+            const cityList = document.getElementById('municipalityCityList');
+            cityList.innerHTML = '<div style="color: #999; text-align: center; padding: 40px;">検索中...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/municipalities/search?q=${encodeURIComponent(query)}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+
+                if (!data.municipalities || data.municipalities.length === 0) {
+                    cityList.innerHTML = '<div style="color: #999; text-align: center; padding: 40px;">該当する市区町村がありません</div>';
+                    return;
+                }
+
+                let html = '';
+                data.municipalities.forEach(city => {
+                    const isSelected = selectedMunicipalities.has(city.code);
+                    html += `
+                        <label class="municipality-city-item ${isSelected ? 'selected' : ''}">
+                            <input type="checkbox" value="${city.code}"
+                                   ${isSelected ? 'checked' : ''}
+                                   onchange="toggleMunicipalitySelection('${city.code}', '${city.name}', '${city.prefecture_name}', this.checked)">
+                            <span style="color: #666; font-size: 11px;">${city.prefecture_name}</span> ${city.name}
+                        </label>
+                    `;
+                });
+                cityList.innerHTML = html;
+            } catch (error) {
+                console.error('Failed to search municipalities:', error);
+                cityList.innerHTML = '<div style="color: #c62828; text-align: center; padding: 40px;">検索に失敗しました</div>';
+            }
+        }
+
+        // v10.0: 選択された地域コード取得（スコープ対応）
+        function getSelectedRegionCodes() {
+            if (regionScope === 'municipality') {
+                return Array.from(selectedMunicipalities.keys());
+            } else {
+                return getSelectedRegions();
+            }
+        }
+
+        function onRegionPresetChange() {
+            const preset = document.getElementById('regionPreset').value;
+            const panel = document.getElementById('customRegionPanel');
+            panel.classList.toggle('show', preset === 'custom');
+        }
+
+        function selectAllPrefectures() {
+            document.querySelectorAll('#prefectureGrid input').forEach(cb => cb.checked = true);
+            updateSelectedCount();
+        }
+
+        function clearAllPrefectures() {
+            document.querySelectorAll('#prefectureGrid input').forEach(cb => cb.checked = false);
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const count = document.querySelectorAll('#prefectureGrid input:checked').length;
+            document.getElementById('selectedCount').textContent = count;
+        }
+
+        function getSelectedRegions() {
+            const preset = document.getElementById('regionPreset').value;
+            if (preset === 'custom') {
+                const codes = [];
+                document.querySelectorAll('#prefectureGrid input:checked').forEach(cb => {
+                    codes.push(cb.value);
+                });
+                return codes.length > 0 ? codes : ALL_PREFECTURES;
+            }
+            return REGION_PRESETS[preset]?.codes || ALL_PREFECTURES;
+        }
+
+        // 数値フォーマット
+        function formatValue(value) {
+            if (value == null || value === '') return '-';
+            const num = parseFloat(value);
+            if (isNaN(num)) return '-';
+            if (Math.abs(num) >= 100000000) return (num / 100000000).toFixed(1) + '億';
+            if (Math.abs(num) >= 10000) return (num / 10000).toFixed(1) + '万';
+            if (!Number.isInteger(num)) return num.toFixed(2).replace(/\.?0+$/, '');
+            return num.toLocaleString();
+        }
+
+        // v7.0: データ検索 (v10.0: 市区町村スコープ対応)
+        async function searchData() {
+            const selectedIndicators = getAllSelectedIndicators();
+            const yearStart = parseInt(document.getElementById('yearStart').value);
+            const yearEnd = parseInt(document.getElementById('yearEnd').value);
+
+            if (selectedIndicators.length === 0) {
+                showToast('指標を1つ以上選択してください');
+                return;
+            }
+
+            // v10.0: 市区町村スコープの場合、選択チェック
+            if (regionScope === 'municipality' && selectedMunicipalities.size === 0) {
+                showToast('市区町村を1つ以上選択してください');
+                return;
+            }
+
+            showLoading(true);
+            currentIndicator = selectedIndicators.map(i => i.name).join(', ');
+
+            try {
+                // v10.0: スコープに応じた地域コード取得
+                const selectedRegions = regionScope === 'municipality'
+                    ? Array.from(selectedMunicipalities.keys())
+                    : getSelectedRegions();
+                const indicatorCodes = selectedIndicators.map(i => i.code);
+                console.log(`[DEBUG] Scope: ${regionScope}, Selected ${indicatorCodes.length} indicators, ${selectedRegions.length} regions`);
+
+                const response = await fetch(`${API_BASE}/api/statistics/cross-analysis`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        indicators: indicatorCodes,
+                        year_from: yearStart,
+                        year_to: yearEnd,
+                        regions: selectedRegions
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.status && result.status === 'error') {
+                    showToast('データの取得に失敗しました', true);
+                    showEmpty('エラーが発生しました');
+                    return;
+                }
+
+                rawData = [];
+                const results = result.results || {};
+
+                for (const [regionCode, regionResult] of Object.entries(results)) {
+                    const regionName = regionResult.region_name || PREFECTURE_NAMES[regionCode] || `地域${regionCode}`;
+                    const regionData = regionResult.data || {};
+
+                    for (const [indKey, indInfo] of Object.entries(regionData)) {
+                        const cdCat01Code = indKey.startsWith('__dynamic__')
+                            ? indKey.replace('__dynamic__', '')
+                            : indKey;
+                        const indicatorName = availableIndicatorNames[cdCat01Code] || indInfo.name || cdCat01Code;
+                        const dataArray = indInfo.data || [];
+
+                        for (const item of dataArray) {
+                            if (item.year != null && item.value != null) {
+                                rawData.push({
+                                    region: regionCode,
+                                    regionName: regionName,
+                                    year: String(item.year),
+                                    indicator: cdCat01Code,
+                                    indicatorName: indicatorName,
+                                    value: item.value
+                                });
+                            }
+                        }
+                    }
+                }
+
+                console.log(`[DEBUG] rawData: ${rawData.length} records`);
+
+                if (rawData.length === 0) {
+                    showToast('該当するデータがありません');
+                    showEmpty('データが見つかりませんでした');
+                    document.getElementById('pivotSettings').style.display = 'none';
+                    return;
+                }
+
+                document.getElementById('pivotSettings').style.display = 'block';
+                updateFilterDropdown();
+                renderPivotTable();
+
+                // v8.0: 解析パネルを更新
+                updateAnalysisPanel();
+
+                const uniqueRegions = [...new Set(rawData.map(d => d.region))].length;
+                const uniqueYears = [...new Set(rawData.map(d => d.year))].length;
+                const uniqueInds = [...new Set(rawData.map(d => d.indicator))].length;
+                showToast(`${uniqueRegions}地域 × ${uniqueYears}年度 × ${uniqueInds}指標のデータを取得`, false, true);
+
+            } catch (error) {
+                console.error('Search error:', error);
+                // APIサーバー未起動の場合のエラーメッセージを改善
+                if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+                    showToast('APIサーバー(localhost:5099)に接続できません', true);
+                    showEmpty('APIサーバーが起動していません。\n\nデータ検索にはAPIサーバーが必要です。\nサーバー起動: cd backend && python app.py');
+                } else {
+                    showToast('通信エラーが発生しました', true);
+                    showEmpty('エラーが発生しました');
+                }
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // ピボットテーブルを描画
+        function renderPivotTable() {
+            const thead = document.getElementById('tableHead');
+            const tbody = document.getElementById('tableBody');
+
+            const filterValue = pivotConfig.filterValue;
+            const filteredData = rawData.filter(d => {
+                switch (pivotConfig.filterAxis) {
+                    case 'region': return d.region === filterValue;
+                    case 'year': return d.year === filterValue;
+                    case 'indicator': return d.indicator === filterValue;
+                    default: return true;
+                }
+            });
+
+            if (filteredData.length === 0) {
+                showEmpty('該当するデータがありません');
+                document.getElementById('tableContainer').style.display = 'none';
+                return;
+            }
+
+            const rowValues = getAxisValues(filteredData, pivotConfig.rowAxis);
+            const colValues = getAxisValues(filteredData, pivotConfig.colAxis);
+
+            const lookup = {};
+            filteredData.forEach(d => {
+                const rowKey = getAxisKey(d, pivotConfig.rowAxis);
+                const colKey = getAxisKey(d, pivotConfig.colAxis);
+                lookup[`${rowKey}|${colKey}`] = d.value;
+            });
+
+            const rowLabel = { region: '都道府県', year: '年度', indicator: '指標' }[pivotConfig.rowAxis];
+            let headerHTML = '<tr>';
+            headerHTML += `<th class="rank-cell">順位</th>`;
+            headerHTML += `<th>${rowLabel}</th>`;
+            colValues.forEach(col => {
+                headerHTML += `<th>${col.name}</th>`;
+            });
+            headerHTML += '</tr>';
+            thead.innerHTML = headerHTML;
+
+            const firstColKey = colValues[0]?.key;
+            rowValues.sort((a, b) => {
+                const valA = parseFloat(lookup[`${a.key}|${firstColKey}`]) || 0;
+                const valB = parseFloat(lookup[`${b.key}|${firstColKey}`]) || 0;
+                return valB - valA;
+            });
+
+            let bodyHTML = '';
+            rowValues.forEach((row, idx) => {
+                bodyHTML += '<tr>';
+                bodyHTML += `<td class="rank-cell">${idx + 1}</td>`;
+                bodyHTML += `<td>${row.name}</td>`;
+                colValues.forEach(col => {
+                    const val = lookup[`${row.key}|${col.key}`];
+                    bodyHTML += `<td class="value-cell">${formatValue(val)}</td>`;
+                });
+                bodyHTML += '</tr>';
+            });
+            tbody.innerHTML = bodyHTML;
+
+            const filterLabel = getFilterDisplayName(filterValue, pivotConfig.filterAxis);
+            document.getElementById('resultsTitle').textContent = `検索結果: ${filterLabel}`;
+            document.getElementById('resultsCount').textContent = `${rowValues.length}件`;
+
+            document.getElementById('emptyMessage').style.display = 'none';
+            document.getElementById('tableContainer').style.display = 'block';
+
+            currentData = rowValues.map((row) => {
+                const rowData = { code: row.key, name: row.name };
+                colValues.forEach(col => {
+                    rowData[col.key] = lookup[`${row.key}|${col.key}`];
+                });
+                return rowData;
+            });
+        }
+
+        function getAxisValues(data, axis) {
+            const seen = new Map();
+            data.forEach(d => {
+                const key = getAxisKey(d, axis);
+                const name = getAxisName(d, axis);
+                if (!seen.has(key)) {
+                    seen.set(key, { key, name });
+                }
+            });
+
+            const values = Array.from(seen.values());
+            switch (axis) {
+                case 'region': values.sort((a, b) => a.key.localeCompare(b.key)); break;
+                case 'year': values.sort((a, b) => parseInt(b.key) - parseInt(a.key)); break;
+                case 'indicator': values.sort((a, b) => a.key.localeCompare(b.key)); break;
+            }
+            return values;
+        }
+
+        function getAxisKey(d, axis) {
+            switch (axis) {
+                case 'region': return d.region;
+                case 'year': return d.year;
+                case 'indicator': return d.indicator;
+            }
+        }
+
+        function getAxisName(d, axis) {
+            switch (axis) {
+                case 'region': return d.regionName;
+                case 'year': return `${d.year}年`;
+                case 'indicator': return d.indicatorName;
+            }
+        }
+
+        function getFilterDisplayName(value, axis) {
+            switch (axis) {
+                case 'region': return PREFECTURE_NAMES[value] || value;
+                case 'year': return `${value}年`;
+                case 'indicator': return availableIndicatorNames[value] || value;
+            }
+        }
+
+        // v8.0: ダウンロードメニュー制御
+        function toggleDownloadMenu() {
+            const dropdown = document.getElementById('downloadDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // クリック外で閉じる
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.btn-download-menu')) {
+                document.getElementById('downloadDropdown')?.classList.remove('show');
+            }
+        });
+
+        // CSV出力（生データ）
+        function downloadCSVRaw() {
+            if (rawData.length === 0) {
+                showToast('出力するデータがありません');
+                return;
+            }
+
+            const headers = ['地域コード', '地域名', '年度', '指標コード', '指標名', '値'];
+            let csv = '\uFEFF' + headers.join(',') + '\n';
+
+            rawData.forEach(row => {
+                const values = [
+                    row.region,
+                    row.regionName,
+                    row.year,
+                    row.indicator,
+                    row.indicatorName,
+                    row.value ?? ''
+                ];
+                csv += values.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',') + '\n';
+            });
+
+            downloadFile(csv, `estat_raw_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv;charset=utf-8');
+            showToast('CSV（生データ）をダウンロードしました', false, true);
+            toggleDownloadMenu();
+        }
+
+        // CSV出力（ピボット形式）
+        function downloadCSVPivot() {
+            if (currentData.length === 0) {
+                showToast('出力するデータがありません');
+                return;
+            }
+
+            const headers = ['順位', 'コード', '名称'];
+            const colKeys = Object.keys(currentData[0]).filter(k => k !== 'code' && k !== 'name');
+            colKeys.forEach(k => headers.push(k));
+
+            let csv = '\uFEFF' + headers.join(',') + '\n';
+            currentData.forEach((row, idx) => {
+                const values = [idx + 1, row.code, row.name];
+                colKeys.forEach(k => values.push(row[k] ?? ''));
+                csv += values.join(',') + '\n';
+            });
+
+            downloadFile(csv, `estat_pivot_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv;charset=utf-8');
+            showToast('CSV（ピボット形式）をダウンロードしました', false, true);
+            toggleDownloadMenu();
+        }
+
+        // Excel出力
+        function downloadExcel() {
+            if (rawData.length === 0) {
+                showToast('出力するデータがありません');
+                return;
+            }
+
+            // SheetJSでExcel生成
+            const wb = XLSX.utils.book_new();
+
+            // シート1: 生データ
+            const rawSheetData = rawData.map(row => ({
+                '地域コード': row.region,
+                '地域名': row.regionName,
+                '年度': row.year,
+                '指標コード': row.indicator,
+                '指標名': row.indicatorName,
+                '値': row.value
+            }));
+            const ws1 = XLSX.utils.json_to_sheet(rawSheetData);
+            XLSX.utils.book_append_sheet(wb, ws1, '生データ');
+
+            // シート2: ピボットデータ
+            if (currentData.length > 0) {
+                const pivotData = currentData.map((row, idx) => {
+                    const obj = { '順位': idx + 1, 'コード': row.code, '名称': row.name };
+                    Object.keys(row).filter(k => k !== 'code' && k !== 'name').forEach(k => {
+                        obj[k] = row[k];
+                    });
+                    return obj;
+                });
+                const ws2 = XLSX.utils.json_to_sheet(pivotData);
+                XLSX.utils.book_append_sheet(wb, ws2, 'ピボット');
+            }
+
+            // シート3: メタ情報
+            const indicators = getAllSelectedIndicators();
+            const metaData = [
+                { '項目': '出力日時', '値': new Date().toLocaleString('ja-JP') },
+                { '項目': 'データ件数', '値': rawData.length },
+                { '項目': '指標数', '値': indicators.length },
+                { '項目': '選択指標', '値': indicators.map(i => i.name).join(', ') }
+            ];
+            const ws3 = XLSX.utils.json_to_sheet(metaData);
+            XLSX.utils.book_append_sheet(wb, ws3, 'メタ情報');
+
+            XLSX.writeFile(wb, `estat_${new Date().toISOString().slice(0,10)}.xlsx`);
+            showToast('Excelファイルをダウンロードしました', false, true);
+            toggleDownloadMenu();
+        }
+
+        // ファイルダウンロードヘルパー
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // 旧downloadCSVを維持（互換性）
+        function downloadCSV() {
+            downloadCSVPivot();
+        }
+
+        // ===== v8.0: 解析機能 =====
+
+        let scatterChart = null;
+        let timeseriesChart = null;
+        let barChart = null;
+
+        // 解析タブ切り替え
+        function switchAnalysisTab(tabName) {
+            document.querySelectorAll('.analysis-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.analysis-content').forEach(content => content.classList.remove('active'));
+
+            document.querySelector(`.analysis-tab[onclick*="${tabName}"]`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+
+            // 初回表示時にチャート更新
+            switch(tabName) {
+                case 'scatter': updateScatterPlot(); break;
+                case 'timeseries': updateTimeseriesChart(); break;
+                case 'bar': updateBarChart(); break;
+            }
+        }
+
+        // 解析パネルを更新
+        function updateAnalysisPanel() {
+            const indicators = [...new Set(rawData.map(d => d.indicator))];
+            const years = [...new Set(rawData.map(d => d.year))].sort((a, b) => b - a);
+            const regions = [...new Set(rawData.map(d => d.region))].sort();
+
+            if (indicators.length < 2) {
+                document.getElementById('analysisPanel').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('analysisPanel').style.display = 'block';
+
+            // 散布図セレクト
+            const indicatorOptions = indicators.map(i =>
+                `<option value="${i}">${availableIndicatorNames[i] || i}</option>`
+            ).join('');
+            document.getElementById('scatterX').innerHTML = indicatorOptions;
+            document.getElementById('scatterY').innerHTML = indicatorOptions;
+            if (indicators.length > 1) {
+                document.getElementById('scatterY').selectedIndex = 1;
+            }
+            document.getElementById('scatterYear').innerHTML = years.map(y => `<option value="${y}">${y}年</option>`).join('');
+
+            // 時系列セレクト
+            document.getElementById('timeseriesRegion').innerHTML = regions.map(r =>
+                `<option value="${r}">${PREFECTURE_NAMES[r] || r}</option>`
+            ).join('');
+
+            // 時系列の指標チェックボックス
+            const colors = ['#3949ab', '#e53935', '#43a047', '#fb8c00', '#8e24aa', '#00acc1'];
+            document.getElementById('timeseriesIndicators').innerHTML = indicators.map((ind, idx) => {
+                const name = availableIndicatorNames[ind] || ind;
+                const color = colors[idx % colors.length];
+                return `<label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                    <input type="checkbox" value="${ind}" checked onchange="updateTimeseriesChart()" style="accent-color: ${color};">
+                    <span style="color: ${color}; font-weight: 500;">${name}</span>
+                </label>`;
+            }).join('');
+
+            // 棒グラフセレクト
+            document.getElementById('barIndicator').innerHTML = indicatorOptions;
+            document.getElementById('barYear').innerHTML = years.map(y => `<option value="${y}">${y}年</option>`).join('');
+
+            // 相関行列を計算
+            updateCorrelationMatrix();
+        }
+
+        // 相関行列を計算・表示
+        function updateCorrelationMatrix() {
+            const indicators = [...new Set(rawData.map(d => d.indicator))];
+            const years = [...new Set(rawData.map(d => d.year))];
+            const latestYear = years.sort((a, b) => b - a)[0];
+
+            if (indicators.length < 2) {
+                document.getElementById('correlationMatrix').innerHTML =
+                    '<p style="color: #999; text-align: center;">2つ以上の指標を選択すると相関行列が表示されます</p>';
+                return;
+            }
+
+            // 最新年のデータで相関計算
+            const yearData = rawData.filter(d => d.year === latestYear);
+            const regions = [...new Set(yearData.map(d => d.region))];
+
+            // 指標ごとのベクトルを作成
+            const vectors = {};
+            indicators.forEach(ind => {
+                vectors[ind] = regions.map(r => {
+                    const item = yearData.find(d => d.region === r && d.indicator === ind);
+                    return item ? parseFloat(item.value) : null;
+                });
+            });
+
+            // 相関行列を計算
+            let html = '<table class="correlation-table"><tr><th></th>';
+            indicators.forEach(ind => {
+                const name = availableIndicatorNames[ind] || ind;
+                html += `<th title="${name}">${name.slice(0, 10)}${name.length > 10 ? '...' : ''}</th>`;
+            });
+            html += '</tr>';
+
+            indicators.forEach(ind1 => {
+                const name1 = availableIndicatorNames[ind1] || ind1;
+                html += `<tr><th title="${name1}">${name1.slice(0, 10)}${name1.length > 10 ? '...' : ''}</th>`;
+                indicators.forEach(ind2 => {
+                    const corr = calculateCorrelation(vectors[ind1], vectors[ind2]);
+                    const colorClass = corr > 0.3 ? 'correlation-positive' :
+                                       corr < -0.3 ? 'correlation-negative' : 'correlation-neutral';
+                    html += `<td class="${colorClass}" title="${ind1} vs ${ind2}">${corr.toFixed(2)}</td>`;
+                });
+                html += '</tr>';
+            });
+            html += '</table>';
+            html += `<p style="font-size: 11px; color: #999; margin-top: 8px;">※ ${latestYear}年のデータで計算</p>`;
+
+            document.getElementById('correlationMatrix').innerHTML = html;
+        }
+
+        // ピアソン相関係数を計算
+        function calculateCorrelation(x, y) {
+            const pairs = x.map((xi, i) => [xi, y[i]]).filter(p => p[0] !== null && p[1] !== null);
+            if (pairs.length < 3) return 0;
+
+            const n = pairs.length;
+            const sumX = pairs.reduce((s, p) => s + p[0], 0);
+            const sumY = pairs.reduce((s, p) => s + p[1], 0);
+            const sumXY = pairs.reduce((s, p) => s + p[0] * p[1], 0);
+            const sumX2 = pairs.reduce((s, p) => s + p[0] * p[0], 0);
+            const sumY2 = pairs.reduce((s, p) => s + p[1] * p[1], 0);
+
+            const numerator = n * sumXY - sumX * sumY;
+            const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+
+            return denominator === 0 ? 0 : numerator / denominator;
+        }
+
+        // 散布図を更新
+        function updateScatterPlot() {
+            const xIndicator = document.getElementById('scatterX').value;
+            const yIndicator = document.getElementById('scatterY').value;
+            const year = document.getElementById('scatterYear').value;
+
+            if (!xIndicator || !yIndicator || !year) return;
+
+            const yearData = rawData.filter(d => d.year === year);
+            const regions = [...new Set(yearData.map(d => d.region))];
+
+            const data = regions.map(r => {
+                const xItem = yearData.find(d => d.region === r && d.indicator === xIndicator);
+                const yItem = yearData.find(d => d.region === r && d.indicator === yIndicator);
+                return {
+                    x: xItem ? parseFloat(xItem.value) : null,
+                    y: yItem ? parseFloat(yItem.value) : null,
+                    region: r,
+                    regionName: PREFECTURE_NAMES[r] || r
+                };
+            }).filter(d => d.x !== null && d.y !== null);
+
+            const ctx = document.getElementById('scatterChart').getContext('2d');
+
+            if (scatterChart) scatterChart.destroy();
+
+            scatterChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: `${year}年`,
+                        data: data,
+                        backgroundColor: 'rgba(57, 73, 171, 0.6)',
+                        borderColor: 'rgba(57, 73, 171, 1)',
+                        borderWidth: 1,
+                        pointRadius: 8,
+                        pointHoverRadius: 12
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const d = ctx.raw;
+                                    return `${d.regionName}: (${formatValue(d.x)}, ${formatValue(d.y)})`;
+                                }
+                            }
+                        },
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: availableIndicatorNames[xIndicator] || xIndicator }
+                        },
+                        y: {
+                            title: { display: true, text: availableIndicatorNames[yIndicator] || yIndicator }
+                        }
+                    }
+                }
+            });
+
+            // 相関係数を表示
+            const xVals = data.map(d => d.x);
+            const yVals = data.map(d => d.y);
+            const corr = calculateCorrelation(xVals, yVals);
+            document.getElementById('scatterStats').innerHTML = `
+                <div class="stats-card">
+                    <div class="label">相関係数</div>
+                    <div class="value">${corr.toFixed(3)}</div>
+                    <div class="sub">${corr > 0.7 ? '強い正の相関' : corr > 0.4 ? '中程度の正の相関' : corr > 0 ? '弱い正の相関' : corr > -0.4 ? '弱い負の相関' : corr > -0.7 ? '中程度の負の相関' : '強い負の相関'}</div>
+                </div>
+                <div class="stats-card">
+                    <div class="label">データ数</div>
+                    <div class="value">${data.length}</div>
+                    <div class="sub">都道府県</div>
+                </div>
+            `;
+        }
+
+        // 時系列チャートを更新
+        function updateTimeseriesChart() {
+            const region = document.getElementById('timeseriesRegion').value;
+            if (!region) return;
+
+            // 選択された指標を取得
+            const checkboxes = document.querySelectorAll('#timeseriesIndicators input[type="checkbox"]:checked');
+            const selectedIndicators = Array.from(checkboxes).map(cb => cb.value);
+
+            if (selectedIndicators.length === 0) {
+                // 何も選択されていない場合はグラフをクリア
+                if (timeseriesChart) timeseriesChart.destroy();
+                timeseriesChart = null;
+                return;
+            }
+
+            const regionData = rawData.filter(d => d.region === region && selectedIndicators.includes(d.indicator));
+            const indicators = selectedIndicators;
+            const years = [...new Set(regionData.map(d => d.year))].sort();
+
+            const datasets = indicators.map((ind, idx) => {
+                const colors = ['#3949ab', '#e53935', '#43a047', '#fb8c00', '#8e24aa', '#00acc1'];
+                const color = colors[idx % colors.length];
+
+                return {
+                    label: availableIndicatorNames[ind] || ind,
+                    data: years.map(y => {
+                        const item = regionData.find(d => d.year === y && d.indicator === ind);
+                        return item ? parseFloat(item.value) : null;
+                    }),
+                    borderColor: color,
+                    backgroundColor: color + '20',
+                    fill: false,
+                    tension: 0.1
+                };
+            });
+
+            const ctx = document.getElementById('timeseriesChart').getContext('2d');
+
+            if (timeseriesChart) timeseriesChart.destroy();
+
+            timeseriesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: years.map(y => `${y}年`),
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${PREFECTURE_NAMES[region] || region}の推移`
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // 棒グラフを更新
+        function updateBarChart() {
+            const indicator = document.getElementById('barIndicator').value;
+            const year = document.getElementById('barYear').value;
+            const topN = parseInt(document.getElementById('barTopN').value);
+
+            if (!indicator || !year) return;
+
+            let data = rawData
+                .filter(d => d.indicator === indicator && d.year === year)
+                .map(d => ({ region: d.region, regionName: d.regionName, value: parseFloat(d.value) }))
+                .sort((a, b) => b.value - a.value);
+
+            if (topN < 47) {
+                data = data.slice(0, topN);
+            }
+
+            const ctx = document.getElementById('barChart').getContext('2d');
+
+            if (barChart) barChart.destroy();
+
+            barChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.regionName),
+                    datasets: [{
+                        label: availableIndicatorNames[indicator] || indicator,
+                        data: data.map(d => d.value),
+                        backgroundColor: data.map((_, i) => {
+                            const ratio = i / data.length;
+                            return `rgba(57, 73, 171, ${1 - ratio * 0.6})`;
+                        }),
+                        borderColor: 'rgba(57, 73, 171, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${availableIndicatorNames[indicator] || indicator}（${year}年）`
+                        },
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('show', show);
+            document.getElementById('btnSearch').disabled = show;
+            if (show) {
+                document.getElementById('emptyMessage').style.display = 'none';
+                document.getElementById('tableContainer').style.display = 'none';
+            }
+        }
+
+        function showEmpty(message) {
+            const el = document.getElementById('emptyMessage');
+            // 改行を<br>に変換して複数行メッセージをサポート
+            el.querySelector('p').innerHTML = message.replace(/\n/g, '<br>');
+            el.style.display = 'block';
+            document.getElementById('tableContainer').style.display = 'none';
+        }
+
+        let toastTimeout = null;
+        function showToast(message, isError = false, isSuccess = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('error');
+            if (isError) toast.classList.add('error');
+            toast.classList.add('show');
+
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, isSuccess ? 3000 : 5000);
+        }
+    </script>
+</body>
+</html>

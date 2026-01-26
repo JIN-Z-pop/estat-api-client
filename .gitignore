@@ -1,0 +1,80 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+cache/
+*.cache.json
+.env
+.env.local
+config.local.json
+secrets.json
+**/credentials.json
+**/service_account.json
+
+# Allow .env.example to be committed
+!.env.example
+
+# Node (for future frontend development)
+node_modules/
+
+# Test
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build
+*.log
+
+# Backup files
+*.bak
+*.backup
+
+# Windows artifacts
+NUL
+**/NUL
+
+# Internal/temporary files
+instruction_*.txt
+wezterm_*.txt
+PROJECT_*.md
+ISSUES.md
+
+# Duplicate config files
+config/estat_indicators_*.json
+!config/estat_indicators.json
