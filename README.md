@@ -238,6 +238,13 @@ MIT License - see [LICENSE](LICENSE)
 
 ---
 
+## 💬 サポート
+
+- **バグ報告・機能要望**: [GitHub Issues](https://github.com/JIN-Z-pop/estat-api-client/issues)
+- **質問・相談**: Issuesで「question」ラベルを付けて投稿してください
+
+---
+
 ## データソース
 
 - [e-Stat 政府統計の総合窓口](https://www.e-stat.go.jp/)
