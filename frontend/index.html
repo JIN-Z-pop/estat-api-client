@@ -119,7 +119,7 @@
         .search-column-body {
             flex: 1;
             overflow-y: auto;
-            max-height: 280px;
+            max-height: 420px;  /* v12.0: 1.5倍に拡張 */
         }
 
         /* 指標カラム */
@@ -140,7 +140,7 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             padding: 8px;
-            max-height: 220px;
+            max-height: 330px;  /* v12.0: 1.5倍に拡張 */
             overflow-y: auto;
         }
 
@@ -201,20 +201,10 @@
             font-size: 12px;
         }
 
-        .year-column .year-checkboxes {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 4px;
-        }
-
-        .year-column .year-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 12px;
-            padding: 3px 6px;
-            background: white;
-            border-radius: 4px;
+        .year-column .year-info {
+            margin-top: 8px;
+            color: #888;
+            font-size: 11px;
         }
 
         /* 地域カラム */
@@ -252,7 +242,7 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             padding: 6px;
-            max-height: 180px;
+            max-height: 270px;  /* v12.0: 1.5倍に拡張 */
             overflow-y: auto;
         }
 
@@ -329,7 +319,7 @@
                 grid-template-columns: 1fr;
             }
             .search-column-body {
-                max-height: 200px;
+                max-height: 300px;  /* v12.0: 1.5倍に拡張 */
             }
         }
 
@@ -609,6 +599,28 @@
         .year-range input {
             width: 80px;
             text-align: center;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-clear {
+            padding: 10px 24px;
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-clear:hover {
+            background: #e0e0e0;
+            border-color: #ccc;
         }
 
         .btn-search {
@@ -1455,7 +1467,10 @@
         <section class="search-panel">
             <h2>
                 検索条件
-                <button class="btn-search" id="btnSearch" onclick="searchData()">検索</button>
+                <div class="header-buttons">
+                    <button class="btn-clear" onclick="clearAllConditions()">クリア</button>
+                    <button class="btn-search" id="btnSearch" onclick="searchData()">検索</button>
+                </div>
             </h2>
 
             <!-- v11.0: 3カラム水平レイアウト -->
@@ -1482,16 +1497,15 @@
                 <div class="search-column year-column">
                     <div class="search-column-header">
                         <h3>② 年度</h3>
-                        <span class="count" id="yearCount">4</span>
                     </div>
                     <div class="search-column-body">
                         <div class="year-range-compact">
-                            <input type="number" id="yearStart" value="2020" min="1980" max="2024" onchange="onYearRangeChange()">
+                            <input type="number" id="yearStart" value="2020" min="1975" max="2030" onchange="onYearRangeChange()">
                             <span>〜</span>
-                            <input type="number" id="yearEnd" value="2023" min="1980" max="2024" onchange="onYearRangeChange()">
+                            <input type="number" id="yearEnd" value="2024" min="1975" max="2030" onchange="onYearRangeChange()">
                         </div>
-                        <div class="year-checkboxes" id="yearCheckboxes">
-                            <!-- 年度チェックボックスがJS で生成 -->
+                        <div class="year-info">
+                            <small>※ 1975〜2030年の範囲で指定可能</small>
                         </div>
                     </div>
                 </div>
@@ -1565,7 +1579,7 @@
             <div class="search-summary-bar">
                 <div class="summary-text" id="searchSummaryText">
                     <span>指標: 未選択</span>
-                    <span>年度: 2020-2023</span>
+                    <span>年度: 2020-2024</span>
                     <span>地域: 全国47都道府県</span>
                 </div>
             </div>
@@ -1806,55 +1820,14 @@
             await loadFields();
             renderPrefectureCheckboxes();
             renderMunicipalityPrefList();  // v10.0: 市区町村用都道府県リスト
-            renderYearCheckboxes();  // v11.0: 年度チェックボックス
             // 最初の条件を追加
             addCondition();
             updateSearchSummary();  // v11.0: サマリー更新
         });
 
-        // v11.0: 年度チェックボックスを生成
-        function renderYearCheckboxes() {
-            const container = document.getElementById('yearCheckboxes');
-            const startYear = parseInt(document.getElementById('yearStart').value);
-            const endYear = parseInt(document.getElementById('yearEnd').value);
-
-            let html = '';
-            for (let year = 2024; year >= 2015; year--) {
-                const checked = year >= startYear && year <= endYear ? 'checked' : '';
-                html += `
-                    <label class="year-checkbox">
-                        <input type="checkbox" value="${year}" ${checked} onchange="onYearCheckboxChange()">
-                        ${year}
-                    </label>
-                `;
-            }
-            container.innerHTML = html;
-            updateYearCount();
-        }
-
-        // v11.0: 年度チェックボックス変更時
-        function onYearCheckboxChange() {
-            const checkboxes = document.querySelectorAll('#yearCheckboxes input:checked');
-            const years = Array.from(checkboxes).map(cb => parseInt(cb.value)).sort();
-
-            if (years.length > 0) {
-                document.getElementById('yearStart').value = years[0];
-                document.getElementById('yearEnd').value = years[years.length - 1];
-            }
-            updateYearCount();
-            updateSearchSummary();
-        }
-
-        // v11.0: 年度範囲入力変更時
+        // v12.0: 年度範囲入力変更時
         function onYearRangeChange() {
-            renderYearCheckboxes();
             updateSearchSummary();
-        }
-
-        // v11.0: 年度カウント更新
-        function updateYearCount() {
-            const checkboxes = document.querySelectorAll('#yearCheckboxes input:checked');
-            document.getElementById('yearCount').textContent = checkboxes.length;
         }
 
         // v11.0: 検索サマリー更新
@@ -2041,6 +2014,50 @@
             document.getElementById(`condition-${id}`).remove();
             updateConditionNumbers();
             updateSelectionSummary();
+        }
+
+        // v12.0: 全条件をクリア
+        function clearAllConditions() {
+            // 1. 条件をクリア
+            conditions = {};
+            conditionIdCounter = 0;
+            document.getElementById('conditionsContainer').innerHTML = '';
+            addCondition();  // 空の条件を1つ追加
+
+            // 2. 年度を初期値にリセット
+            document.getElementById('yearStart').value = '2020';
+            document.getElementById('yearEnd').value = '2024';
+
+            // 3. 地域選択をリセット
+            regionScope = 'prefecture';
+            document.querySelector('input[name="regionScope"][value="prefecture"]').checked = true;
+
+            // 地域プリセットを「全国」に
+            document.getElementById('regionPreset').value = 'all';
+
+            // 都道府県を全選択
+            document.querySelectorAll('.region-grid-compact input[type="checkbox"]').forEach(cb => {
+                cb.checked = true;
+            });
+
+            // 市区町村選択をクリア
+            selectedMunicipalities.clear();
+            renderSelectedMunicipalityTags();
+            updateMunicipalityCount();
+
+            // 市区町村パネルを非表示
+            document.getElementById('municipalityPanel').style.display = 'none';
+            document.getElementById('prefecturePanel').style.display = 'block';
+
+            // 4. サマリー更新
+            updateSelectionSummary();  // 選択サマリー（青いバー）をクリア
+            updateSearchSummary();     // 検索サマリーを更新
+
+            // 5. 結果パネルを非表示
+            document.getElementById('pivotSettings').style.display = 'none';
+            document.getElementById('resultArea').innerHTML = '';
+
+            showToast('検索条件をクリアしました');
         }
 
         // 条件番号を更新
