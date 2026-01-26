@@ -27,7 +27,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 
 # =============================================================================
 # 設定
@@ -461,6 +461,147 @@ def parse_estat_response(response: dict, indicator_code: str, year_filter: list 
 def get_data():
     """search APIのエイリアス（互換性のため）"""
     return search_data()
+
+
+@app.route('/api/statistics/cross-analysis', methods=['POST', 'OPTIONS'])
+def cross_analysis():
+    """
+    クロス分析API
+
+    POST Body:
+    {
+        "indicators": ["A1101", "A1301"],  // cdCat01コード
+        "year_from": 2020,
+        "year_to": 2023,
+        "regions": ["13", "27", "14"]      // 都道府県コード
+    }
+
+    Response:
+    {
+        "status": "success",
+        "results": {
+            "13": {
+                "region_name": "東京都",
+                "data": {
+                    "A1101": {
+                        "name": "総人口",
+                        "data": [{"year": 2020, "value": 12345}, ...]
+                    }
+                }
+            }
+        }
+    }
+    """
+    # OPTIONSリクエスト（プリフライト）への対応
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'ok'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        return response
+
+    client = get_estat_client()
+    if not client:
+        return jsonify({
+            'status': 'error',
+            'error': 'ESTAT_API_KEY not configured. Please set it in .env file.'
+        }), 500
+
+    data = request.get_json() or {}
+    indicators = data.get('indicators', [])
+    year_from = data.get('year_from')
+    year_to = data.get('year_to')
+    regions = data.get('regions', [])
+
+    if not indicators:
+        return jsonify({
+            'status': 'error',
+            'error': 'indicators parameter is required'
+        }), 400
+
+    # 年度リストを生成
+    years = []
+    if year_from and year_to:
+        years = list(range(int(year_from), int(year_to) + 1))
+
+    config = load_indicators_config()
+    all_indicators = config.get('indicators', {})
+    stats_data_ids = config.get('stats_data_id', {}).get('prefecture', {})
+
+    # 結果を地域ベースで構築
+    results = {}
+    errors = []
+
+    for indicator_code in indicators:
+        # 指標情報を取得
+        indicator_info = all_indicators.get(indicator_code)
+        if not indicator_info:
+            errors.append(f"Unknown indicator: {indicator_code}")
+            continue
+
+        field = indicator_info.get('field', 'A')
+        stats_data_id = stats_data_ids.get(field, '0000010101')
+
+        # エリアコード構築（都道府県は2桁→5桁に変換）
+        cd_area = None
+        if regions:
+            area_codes = [f"{r.zfill(2)}000" for r in regions]
+            cd_area = ','.join(area_codes)
+
+        # データ取得
+        try:
+            api_response = client.get_stats_data(
+                stats_data_id=stats_data_id,
+                cd_cat01=indicator_code,
+                cd_area=cd_area
+            )
+
+            if 'error' in api_response:
+                errors.append(f"{indicator_code}: {api_response['error']}")
+                continue
+
+            # レスポンスをパース
+            parsed_data = parse_estat_response(api_response, indicator_code, years if years else None)
+
+            # 地域ベースで結果を整理
+            for item in parsed_data:
+                region_code = item['area']
+                region_name = item['area_name']
+
+                if region_code not in results:
+                    results[region_code] = {
+                        'region_name': region_name,
+                        'data': {}
+                    }
+
+                if indicator_code not in results[region_code]['data']:
+                    results[region_code]['data'][indicator_code] = {
+                        'name': indicator_info.get('name_ja', indicator_info.get('name', '')),
+                        'unit': indicator_info.get('unit', ''),
+                        'data': []
+                    }
+
+                results[region_code]['data'][indicator_code]['data'].append({
+                    'year': item['year'],
+                    'value': item['value']
+                })
+
+        except Exception as e:
+            logger.error(f"Error fetching {indicator_code}: {e}")
+            errors.append(f"{indicator_code}: {str(e)}")
+
+    return jsonify({
+        'status': 'success' if results else 'error',
+        'results': results,
+        'errors': errors,
+        'query': {
+            'indicators': indicators,
+            'year_from': year_from,
+            'year_to': year_to,
+            'regions': regions
+        },
+        'timestamp': datetime.now().isoformat()
+    })
 
 
 # =============================================================================

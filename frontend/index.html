@@ -51,7 +51,7 @@
         .search-panel {
             background: white;
             border-radius: 12px;
-            padding: 24px;
+            padding: 16px;
             margin-bottom: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
@@ -59,9 +59,278 @@
         .search-panel h2 {
             font-size: 16px;
             color: #333;
-            margin-bottom: 16px;
-            padding-bottom: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
             border-bottom: 2px solid #3949ab;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-panel h2 .btn-search {
+            margin: 0;
+        }
+
+        /* v11.0: 3カラム水平レイアウト */
+        .search-columns {
+            display: grid;
+            grid-template-columns: 1fr 200px 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .search-column {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-column:hover {
+            border-color: #3949ab;
+        }
+
+        .search-column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .search-column-header h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .search-column-header .count {
+            font-size: 11px;
+            color: #3949ab;
+            font-weight: 600;
+            background: #e3f2fd;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .search-column-body {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 280px;
+        }
+
+        /* 指標カラム */
+        .indicator-column .field-selector {
+            margin-bottom: 8px;
+        }
+
+        .indicator-column .field-selector select {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .indicator-column .indicator-list-compact {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 8px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .indicator-column .indicator-item {
+            padding: 3px 0;
+            font-size: 12px;
+        }
+
+        .indicator-column .btn-add-field {
+            margin-top: 8px;
+            padding: 6px;
+            width: 100%;
+            background: white;
+            border: 1px dashed #ccc;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .indicator-column .btn-add-field:hover {
+            border-color: #3949ab;
+            color: #3949ab;
+        }
+
+        /* 年度カラム */
+        .year-column .year-mode {
+            margin-bottom: 8px;
+        }
+
+        .year-column .year-mode label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            padding: 4px 0;
+            cursor: pointer;
+        }
+
+        .year-column .year-range-compact {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .year-column .year-range-compact input {
+            width: 70px;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .year-column .year-range-compact span {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .year-column .year-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px;
+        }
+
+        .year-column .year-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            padding: 3px 6px;
+            background: white;
+            border-radius: 4px;
+        }
+
+        /* 地域カラム */
+        .region-column .region-scope-compact {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .region-column .region-scope-compact label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .region-column .region-preset-compact {
+            margin-bottom: 8px;
+        }
+
+        .region-column .region-preset-compact select {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .region-column .region-grid-compact {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 6px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .region-column .region-item-compact {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            padding: 2px 4px;
+            cursor: pointer;
+        }
+
+        .region-column .region-item-compact:hover {
+            background: #e8eaed;
+            border-radius: 2px;
+        }
+
+        .region-column .region-actions-compact {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .region-column .region-actions-compact button {
+            padding: 3px 8px;
+            font-size: 11px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .region-column .region-actions-compact button:hover {
+            background: #e8eaed;
+        }
+
+        .region-column .selected-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .region-column .selected-tag {
+            font-size: 10px;
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        /* サマリーバー */
+        .search-summary-bar {
+            background: #e3f2fd;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #1565c0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-summary-bar .summary-text {
+            flex: 1;
+        }
+
+        .search-summary-bar .summary-text span {
+            margin-right: 16px;
+        }
+
+        @media (max-width: 1000px) {
+            .search-columns {
+                grid-template-columns: 1fr;
+            }
+            .search-column-body {
+                max-height: 200px;
+            }
         }
 
         /* v7.0: 検索条件コンテナ */
@@ -71,11 +340,11 @@
 
         /* v7.0: 検索条件カード */
         .condition-card {
-            background: #f8f9fa;
+            background: white;
             border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 12px;
+            border-radius: 6px;
+            padding: 8px;
+            margin-bottom: 8px;
             position: relative;
         }
 
@@ -86,29 +355,29 @@
         .condition-header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
+            gap: 6px;
+            margin-bottom: 6px;
         }
 
         .condition-number {
             background: #3949ab;
             color: white;
-            width: 28px;
-            height: 28px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 11px;
             font-weight: 600;
         }
 
         .condition-field-select {
             flex: 1;
-            padding: 10px 12px;
+            padding: 6px 8px;
             border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
+            border-radius: 4px;
+            font-size: 12px;
             background: white;
             cursor: pointer;
         }
@@ -122,9 +391,9 @@
             background: none;
             border: none;
             color: #999;
-            font-size: 20px;
+            font-size: 16px;
             cursor: pointer;
-            padding: 4px 8px;
+            padding: 2px 6px;
             border-radius: 4px;
             transition: all 0.2s;
         }
@@ -136,46 +405,46 @@
 
         /* 指標チェックボックスリスト */
         .indicator-list {
-            background: white;
+            background: #fafafa;
             border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 12px;
-            max-height: 200px;
+            border-radius: 4px;
+            padding: 6px;
+            max-height: 120px;
             overflow-y: auto;
         }
 
         .indicator-list.empty {
             color: #999;
             text-align: center;
-            padding: 20px;
-            font-size: 13px;
+            padding: 12px;
+            font-size: 11px;
         }
 
         .indicator-list-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
-            padding-bottom: 8px;
+            margin-bottom: 4px;
+            padding-bottom: 4px;
             border-bottom: 1px solid #eee;
         }
 
         .indicator-list-header .title {
-            font-size: 12px;
+            font-size: 11px;
             color: #666;
         }
 
         .indicator-list-header .actions {
             display: flex;
-            gap: 8px;
+            gap: 4px;
         }
 
         .indicator-list-header button {
-            padding: 3px 10px;
-            font-size: 11px;
+            padding: 2px 6px;
+            font-size: 10px;
             background: #f5f5f5;
             border: 1px solid #ccc;
-            border-radius: 4px;
+            border-radius: 3px;
             cursor: pointer;
         }
 
@@ -186,24 +455,82 @@
         .indicator-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 4px 0;
-            font-size: 13px;
+            gap: 4px;
+            padding: 2px 0;
+            font-size: 11px;
         }
 
         .indicator-item.child {
-            padding-left: 20px;
+            padding-left: 16px;
             color: #666;
         }
 
         .indicator-item input {
             cursor: pointer;
+            width: 12px;
+            height: 12px;
         }
 
         .indicator-count {
-            font-size: 11px;
+            font-size: 10px;
             color: #3949ab;
             font-weight: 600;
+            margin-left: 4px;
+        }
+
+        /* v11.0: 条件フッター（決定ボタン） */
+        .condition-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn-confirm-condition {
+            padding: 4px 12px;
+            font-size: 11px;
+            background: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-confirm-condition:hover {
+            background: #43a047;
+        }
+
+        /* v11.0: 折りたたみサマリー */
+        .condition-collapsed-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #e3f2fd;
+            border-radius: 4px;
+            padding: 8px 10px;
+            margin-top: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .condition-collapsed-summary:hover {
+            background: #bbdefb;
+        }
+
+        .condition-collapsed-summary .collapsed-text {
+            font-size: 11px;
+            color: #1565c0;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .condition-collapsed-summary .expand-hint {
+            font-size: 10px;
+            color: #1976d2;
             margin-left: 8px;
         }
 
@@ -528,11 +855,10 @@
         /* カスタム地域選択パネル */
         .custom-region-panel {
             display: none;
-            background: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 16px;
-            margin-top: 12px;
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin-top: 8px;
         }
 
         .custom-region-panel.show {
@@ -564,6 +890,14 @@
             gap: 4px;
         }
 
+        /* v11.0: 3カラムレイアウト内のグリッド */
+        .region-column .prefecture-grid,
+        .region-grid-compact {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2px;
+        }
+
         .prefecture-item {
             display: flex;
             align-items: center;
@@ -592,11 +926,10 @@
         /* 地域２：市区町村選択パネル */
         .municipality-panel {
             display: none;
-            background: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 16px;
-            margin-top: 12px;
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin-top: 8px;
         }
 
         .municipality-panel.show {
@@ -607,22 +940,22 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
 
         .municipality-panel-header h4 {
-            font-size: 13px;
+            font-size: 12px;
             color: #333;
             font-weight: 600;
         }
 
         .municipality-search {
             width: 100%;
-            padding: 8px 12px;
+            padding: 6px 10px;
             border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 13px;
-            margin-bottom: 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-bottom: 8px;
         }
 
         .municipality-search:focus {
@@ -632,8 +965,30 @@
 
         .municipality-selector {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             height: 300px;
+        }
+
+        /* v11.0: 3カラムレイアウト内の市区町村セレクタ */
+        .region-column .municipality-selector {
+            height: 150px;
+        }
+
+        .region-column .municipality-pref-list {
+            width: 90px;
+            font-size: 11px;
+        }
+
+        .region-column .municipality-pref-item {
+            padding: 4px 6px;
+            font-size: 11px;
+        }
+
+        .region-column .municipality-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
         }
 
         .municipality-pref-list {
@@ -1096,107 +1451,127 @@
     </header>
 
     <main class="container">
-        <!-- 検索パネル -->
+        <!-- 検索パネル v11.0: 3カラムレイアウト -->
         <section class="search-panel">
-            <h2>検索条件</h2>
-
-            <!-- 選択サマリー -->
-            <div class="selection-summary" id="selectionSummary"></div>
-
-            <!-- v7.0: 検索条件コンテナ -->
-            <div class="conditions-container" id="conditionsContainer">
-                <!-- 条件カードがここに動的生成 -->
-            </div>
-
-            <!-- 条件追加ボタン -->
-            <button type="button" class="btn-add-condition" onclick="addCondition()">
-                <span style="font-size: 20px;">＋</span>
-                条件を追加
-            </button>
-
-            <!-- 共通フィルター -->
-            <div class="common-filters">
-                <div class="filter-group">
-                    <label>年度</label>
-                    <div class="year-range">
-                        <input type="number" id="yearStart" value="2020" min="1980" max="2024">
-                        <span>〜</span>
-                        <input type="number" id="yearEnd" value="2023" min="1980" max="2024">
-                    </div>
-                </div>
-                <div class="filter-group">
-                    <label>地域スコープ</label>
-                    <div class="region-scope-selector">
-                        <label class="region-scope-option">
-                            <input type="radio" name="regionScope" value="prefecture" checked onchange="onRegionScopeChange()">
-                            都道府県
-                        </label>
-                        <label class="region-scope-option">
-                            <input type="radio" name="regionScope" value="municipality" onchange="onRegionScopeChange()">
-                            市区町村
-                        </label>
-                    </div>
-                </div>
-                <div class="filter-group" id="prefectureFilterGroup">
-                    <label>地域１（都道府県）</label>
-                    <select id="regionPreset" onchange="onRegionPresetChange()">
-                        <option value="all">全国（47都道府県）</option>
-                        <option value="tokyo_metro">首都圏（8都県）</option>
-                        <option value="osaka_metro">近畿圏（6府県）</option>
-                        <option value="nagoya_metro">中京圏（3県）</option>
-                        <option value="three_metro">三大都市圏</option>
-                        <option value="hokkaido_tohoku">北海道・東北</option>
-                        <option value="kanto">関東</option>
-                        <option value="chubu">中部</option>
-                        <option value="kinki">近畿</option>
-                        <option value="chugoku">中国</option>
-                        <option value="shikoku">四国</option>
-                        <option value="kyushu_okinawa">九州・沖縄</option>
-                        <option value="custom">カスタム選択</option>
-                    </select>
-                </div>
+            <h2>
+                検索条件
                 <button class="btn-search" id="btnSearch" onclick="searchData()">検索</button>
-            </div>
+            </h2>
 
-            <!-- カスタム地域選択パネル（地域１用） -->
-            <div class="custom-region-panel" id="customRegionPanel">
-                <div class="region-actions">
-                    <button onclick="selectAllPrefectures()">全選択</button>
-                    <button onclick="clearAllPrefectures()">全解除</button>
-                </div>
-                <div class="prefecture-grid" id="prefectureGrid"></div>
-                <div class="region-count">選択中: <span id="selectedCount">0</span> 都道府県</div>
-            </div>
-
-            <!-- 地域２：市区町村選択パネル -->
-            <div class="municipality-panel" id="municipalityPanel">
-                <div class="municipality-panel-header">
-                    <h4>地域２（市区町村）</h4>
-                </div>
-                <input type="text" class="municipality-search" id="municipalitySearch"
-                       placeholder="🔍 市区町村を検索..." oninput="onMunicipalitySearch(this.value)">
-                <div class="municipality-selector">
-                    <div class="municipality-pref-list" id="municipalityPrefList">
-                        <!-- 都道府県リスト -->
+            <!-- v11.0: 3カラム水平レイアウト -->
+            <div class="search-columns">
+                <!-- 左カラム: 指標選択 -->
+                <div class="search-column indicator-column">
+                    <div class="search-column-header">
+                        <h3>① 指標</h3>
+                        <span class="count" id="indicatorCount">0</span>
                     </div>
-                    <div class="municipality-city-list" id="municipalityCityList">
-                        <div style="color: #999; text-align: center; padding: 40px;">
-                            ← 都道府県を選択してください
+                    <div class="search-column-body">
+                        <!-- v7.0: 検索条件コンテナ（既存のJS互換） -->
+                        <div class="conditions-container" id="conditionsContainer">
+                            <!-- 条件カードがここに動的生成 -->
+                        </div>
+                        <!-- 条件追加ボタン -->
+                        <button type="button" class="btn-add-field" onclick="addCondition()">
+                            ＋ 分野を追加
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 中央カラム: 年度選択 -->
+                <div class="search-column year-column">
+                    <div class="search-column-header">
+                        <h3>② 年度</h3>
+                        <span class="count" id="yearCount">4</span>
+                    </div>
+                    <div class="search-column-body">
+                        <div class="year-range-compact">
+                            <input type="number" id="yearStart" value="2020" min="1980" max="2024" onchange="onYearRangeChange()">
+                            <span>〜</span>
+                            <input type="number" id="yearEnd" value="2023" min="1980" max="2024" onchange="onYearRangeChange()">
+                        </div>
+                        <div class="year-checkboxes" id="yearCheckboxes">
+                            <!-- 年度チェックボックスがJS で生成 -->
                         </div>
                     </div>
                 </div>
-                <div class="municipality-footer">
-                    <div class="actions">
-                        <button onclick="clearAllMunicipalities()">全解除</button>
+
+                <!-- 右カラム: 地域選択 -->
+                <div class="search-column region-column">
+                    <div class="search-column-header">
+                        <h3>③ 地域</h3>
+                        <span class="count" id="regionCount">47</span>
                     </div>
-                    <div class="municipality-count">
-                        選択中: <span id="selectedMunicipalityCount">0</span> 市区町村
+                    <div class="search-column-body">
+                        <div class="region-scope-compact">
+                            <label>
+                                <input type="radio" name="regionScope" value="prefecture" checked onchange="onRegionScopeChange()">
+                                都道府県
+                            </label>
+                            <label>
+                                <input type="radio" name="regionScope" value="municipality" onchange="onRegionScopeChange()">
+                                市区町村
+                            </label>
+                        </div>
+                        <div class="region-preset-compact" id="prefectureFilterGroup">
+                            <select id="regionPreset" onchange="onRegionPresetChange()">
+                                <option value="all">全国（47都道府県）</option>
+                                <option value="tokyo_metro">首都圏（8都県）</option>
+                                <option value="osaka_metro">近畿圏（6府県）</option>
+                                <option value="nagoya_metro">中京圏（3県）</option>
+                                <option value="three_metro">三大都市圏</option>
+                                <option value="hokkaido_tohoku">北海道・東北</option>
+                                <option value="kanto">関東</option>
+                                <option value="chubu">中部</option>
+                                <option value="kinki">近畿</option>
+                                <option value="chugoku">中国</option>
+                                <option value="shikoku">四国</option>
+                                <option value="kyushu_okinawa">九州・沖縄</option>
+                                <option value="custom">カスタム選択</option>
+                            </select>
+                        </div>
+                        <!-- カスタム地域選択（インライン表示） -->
+                        <div class="custom-region-panel" id="customRegionPanel">
+                            <div class="region-actions-compact">
+                                <button onclick="selectAllPrefectures()">全選択</button>
+                                <button onclick="clearAllPrefectures()">全解除</button>
+                            </div>
+                            <div class="region-grid-compact" id="prefectureGrid"></div>
+                            <div class="region-count">選択中: <span id="selectedCount">0</span></div>
+                        </div>
+                        <!-- 市区町村選択パネル -->
+                        <div class="municipality-panel" id="municipalityPanel">
+                            <input type="text" class="municipality-search" id="municipalitySearch"
+                                   placeholder="🔍 市区町村検索..." oninput="onMunicipalitySearch(this.value)">
+                            <div class="municipality-selector" style="height: 150px;">
+                                <div class="municipality-pref-list" id="municipalityPrefList" style="width: 100px;"></div>
+                                <div class="municipality-city-list" id="municipalityCityList">
+                                    <div style="color: #999; text-align: center; padding: 20px; font-size: 11px;">
+                                        ← 都道府県選択
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="municipality-footer">
+                                <button onclick="clearAllMunicipalities()" style="font-size: 11px; padding: 3px 8px;">全解除</button>
+                                <span style="font-size: 11px;">選択: <span id="selectedMunicipalityCount">0</span></span>
+                            </div>
+                            <div class="selected-municipalities" id="selectedMunicipalitiesTags"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="selected-municipalities" id="selectedMunicipalitiesTags">
-                    <!-- 選択された市区町村のタグ表示 -->
                 </div>
             </div>
+
+            <!-- サマリーバー -->
+            <div class="search-summary-bar">
+                <div class="summary-text" id="searchSummaryText">
+                    <span>指標: 未選択</span>
+                    <span>年度: 2020-2023</span>
+                    <span>地域: 全国47都道府県</span>
+                </div>
+            </div>
+
+            <!-- 選択サマリー（既存JS互換） -->
+            <div class="selection-summary" id="selectionSummary" style="display: none;"></div>
         </section>
 
         <!-- 表示設定パネル -->
@@ -1431,9 +1806,107 @@
             await loadFields();
             renderPrefectureCheckboxes();
             renderMunicipalityPrefList();  // v10.0: 市区町村用都道府県リスト
+            renderYearCheckboxes();  // v11.0: 年度チェックボックス
             // 最初の条件を追加
             addCondition();
+            updateSearchSummary();  // v11.0: サマリー更新
         });
+
+        // v11.0: 年度チェックボックスを生成
+        function renderYearCheckboxes() {
+            const container = document.getElementById('yearCheckboxes');
+            const startYear = parseInt(document.getElementById('yearStart').value);
+            const endYear = parseInt(document.getElementById('yearEnd').value);
+
+            let html = '';
+            for (let year = 2024; year >= 2015; year--) {
+                const checked = year >= startYear && year <= endYear ? 'checked' : '';
+                html += `
+                    <label class="year-checkbox">
+                        <input type="checkbox" value="${year}" ${checked} onchange="onYearCheckboxChange()">
+                        ${year}
+                    </label>
+                `;
+            }
+            container.innerHTML = html;
+            updateYearCount();
+        }
+
+        // v11.0: 年度チェックボックス変更時
+        function onYearCheckboxChange() {
+            const checkboxes = document.querySelectorAll('#yearCheckboxes input:checked');
+            const years = Array.from(checkboxes).map(cb => parseInt(cb.value)).sort();
+
+            if (years.length > 0) {
+                document.getElementById('yearStart').value = years[0];
+                document.getElementById('yearEnd').value = years[years.length - 1];
+            }
+            updateYearCount();
+            updateSearchSummary();
+        }
+
+        // v11.0: 年度範囲入力変更時
+        function onYearRangeChange() {
+            renderYearCheckboxes();
+            updateSearchSummary();
+        }
+
+        // v11.0: 年度カウント更新
+        function updateYearCount() {
+            const checkboxes = document.querySelectorAll('#yearCheckboxes input:checked');
+            document.getElementById('yearCount').textContent = checkboxes.length;
+        }
+
+        // v11.0: 検索サマリー更新
+        function updateSearchSummary() {
+            const summaryText = document.getElementById('searchSummaryText');
+
+            // 指標カウント
+            let indicatorTotal = 0;
+            Object.values(conditions).forEach(c => {
+                indicatorTotal += c.indicators.length;
+            });
+            document.getElementById('indicatorCount').textContent = indicatorTotal;
+
+            // 年度
+            const yearStart = document.getElementById('yearStart').value;
+            const yearEnd = document.getElementById('yearEnd').value;
+            const yearText = yearStart === yearEnd ? yearStart : `${yearStart}-${yearEnd}`;
+
+            // 地域
+            const scope = document.querySelector('input[name="regionScope"]:checked').value;
+            let regionText = '';
+            let regionCount = 0;
+
+            if (scope === 'prefecture') {
+                const preset = document.getElementById('regionPreset').value;
+                if (preset === 'all') {
+                    regionText = '全国47都道府県';
+                    regionCount = 47;
+                } else if (preset === 'custom') {
+                    const checked = document.querySelectorAll('#prefectureGrid input:checked');
+                    regionCount = checked.length;
+                    regionText = `${regionCount}都道府県`;
+                } else {
+                    const presetInfo = REGION_PRESETS[preset];
+                    regionCount = presetInfo ? presetInfo.codes.length : 0;
+                    regionText = presetInfo ? presetInfo.name : '';
+                }
+            } else {
+                const checked = document.querySelectorAll('#municipalityCityList input:checked');
+                regionCount = checked.length;
+                regionText = `${regionCount}市区町村`;
+            }
+            document.getElementById('regionCount').textContent = regionCount;
+
+            // サマリーテキスト更新
+            const indicatorText = indicatorTotal > 0 ? `${indicatorTotal}指標` : '未選択';
+            summaryText.innerHTML = `
+                <span>指標: ${indicatorText}</span>
+                <span>年度: ${yearText}</span>
+                <span>地域: ${regionText}</span>
+            `;
+        }
 
         // 分野を読み込み（v9.0: ローカルJSONから）
         async function loadFields() {
@@ -1468,7 +1941,7 @@
         function addCondition() {
             conditionCounter++;
             const id = conditionCounter;
-            conditions[id] = { fieldCode: '', indicators: [], indicatorNames: {} };
+            conditions[id] = { fieldCode: '', indicators: [], indicatorNames: [], collapsed: false };
 
             const container = document.getElementById('conditionsContainer');
             const card = document.createElement('div');
@@ -1486,9 +1959,76 @@
                 <div class="indicator-list empty" id="indicators-${id}">
                     分野を選択すると指標が表示されます
                 </div>
+                <div class="condition-collapsed-summary" id="collapsed-${id}" style="display: none;" onclick="expandCondition(${id})">
+                    <span class="collapsed-text"></span>
+                    <span class="expand-hint">▼ 展開</span>
+                </div>
+                <div class="condition-footer" id="footer-${id}" style="display: none;">
+                    <button type="button" class="btn-confirm-condition" onclick="collapseCondition(${id})">✓ 決定</button>
+                </div>
             `;
             container.appendChild(card);
             updateConditionNumbers();
+        }
+
+        // v11.0: 条件を折りたたむ
+        function collapseCondition(id) {
+            const cond = conditions[id];
+            if (!cond || cond.indicators.length === 0) {
+                showToast('指標を選択してください');
+                return;
+            }
+
+            cond.collapsed = true;
+            const card = document.getElementById(`condition-${id}`);
+            const indicatorList = document.getElementById(`indicators-${id}`);
+            const collapsedSummary = document.getElementById(`collapsed-${id}`);
+            const footer = document.getElementById(`footer-${id}`);
+            const select = card.querySelector('.condition-field-select');
+
+            // 指標リストを非表示
+            indicatorList.style.display = 'none';
+            footer.style.display = 'none';
+
+            // サマリーを表示
+            const fieldName = fieldsCache.find(f => f.code === cond.fieldCode)?.name || cond.fieldCode;
+            const indicatorNames = cond.indicators.slice(0, 3).map(code => cond.indicatorNames[code] || code);
+            let summaryText = `${fieldName}: ${indicatorNames.join(', ')}`;
+            if (cond.indicators.length > 3) {
+                summaryText += ` 他${cond.indicators.length - 3}件`;
+            }
+            summaryText += ` (${cond.indicators.length}件)`;
+
+            collapsedSummary.querySelector('.collapsed-text').textContent = summaryText;
+            collapsedSummary.style.display = 'flex';
+
+            // セレクトを無効化
+            select.disabled = true;
+            select.style.opacity = '0.6';
+
+            updateSearchSummary();
+        }
+
+        // v11.0: 条件を展開
+        function expandCondition(id) {
+            const cond = conditions[id];
+            if (!cond) return;
+
+            cond.collapsed = false;
+            const card = document.getElementById(`condition-${id}`);
+            const indicatorList = document.getElementById(`indicators-${id}`);
+            const collapsedSummary = document.getElementById(`collapsed-${id}`);
+            const footer = document.getElementById(`footer-${id}`);
+            const select = card.querySelector('.condition-field-select');
+
+            // 指標リストを表示
+            indicatorList.style.display = 'block';
+            footer.style.display = 'flex';
+            collapsedSummary.style.display = 'none';
+
+            // セレクトを有効化
+            select.disabled = false;
+            select.style.opacity = '1';
         }
 
         // v7.0: 条件を削除
@@ -1567,6 +2107,10 @@
 
                 html += '</div>';
                 indicatorContainer.innerHTML = html;
+
+                // v11.0: フッター（決定ボタン）を表示
+                const footer = document.getElementById(`footer-${conditionId}`);
+                if (footer) footer.style.display = 'flex';
             } else {
                 indicatorContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">指標がありません</div>';
             }
@@ -1621,6 +2165,9 @@
             } else {
                 summary.classList.remove('show');
             }
+
+            // v11.0: 3カラムサマリーも更新
+            updateSearchSummary();
         }
 
         // v7.0: 全指標を取得（全条件から）
@@ -1940,6 +2487,7 @@
             const preset = document.getElementById('regionPreset').value;
             const panel = document.getElementById('customRegionPanel');
             panel.classList.toggle('show', preset === 'custom');
+            updateSearchSummary();  // v11.0
         }
 
         function selectAllPrefectures() {
@@ -1955,6 +2503,7 @@
         function updateSelectedCount() {
             const count = document.querySelectorAll('#prefectureGrid input:checked').length;
             document.getElementById('selectedCount').textContent = count;
+            updateSearchSummary();  // v11.0
         }
 
         function getSelectedRegions() {
