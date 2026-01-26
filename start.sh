@@ -48,7 +48,7 @@ sleep 3
 
 # Start frontend server (background)
 cd frontend
-python3 -m http.server 8080 &
+python3 -m http.server 8888 &
 FRONTEND_PID=$!
 cd ..
 
@@ -57,7 +57,7 @@ echo "========================================"
 echo "  Servers Started!"
 echo "========================================"
 echo ""
-echo "  Frontend: http://localhost:8080"
+echo "  Frontend: http://localhost:8888"
 echo "  API:      http://localhost:5099"
 echo ""
 echo "  Press Ctrl+C to stop servers"

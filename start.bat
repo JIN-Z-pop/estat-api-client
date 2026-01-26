@@ -45,17 +45,17 @@ REM Wait for backend to start
 timeout /t 3 /nobreak > nul
 
 REM Start frontend server
-start "e-Stat Frontend" cmd /k "cd frontend && python -m http.server 8080"
+start "e-Stat Frontend" cmd /k "cd frontend && python -m http.server 8888"
 
 echo.
 echo ========================================
 echo   Servers Started!
 echo ========================================
 echo.
-echo   Frontend: http://localhost:8080
+echo   Frontend: http://localhost:8888
 echo   API:      http://localhost:5099
 echo.
 echo   Press any key to open browser...
 pause > nul
 
-start http://localhost:8080
+start http://localhost:8888
