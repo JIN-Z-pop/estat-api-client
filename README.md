@@ -8,6 +8,8 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Windows 11](https://img.shields.io/badge/Tested%20on-Windows%2011-blue.svg)](https://www.microsoft.com/windows/windows-11)
 
+> **[Landing Page](https://jin-z-pop.github.io/estat-api-client/)** — プロジェクト概要をご覧ください。
+
 **[English README](README.en.md)**
 
 ## 特徴
