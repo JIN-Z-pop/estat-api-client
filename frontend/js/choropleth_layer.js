@@ -9,6 +9,12 @@
  * 2026-01-06 作成
  */
 
+// Security: escape HTML entities to prevent XSS
+function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
 class ChoroplethLayer {
     constructor(map, options = {}) {
         this.map = map;
@@ -446,15 +452,15 @@ class ChoroplethLayer {
 
         this.tooltip.innerHTML = `
             <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; color: #333;">
-                ${props.name}
+                ${escapeHtml(props.name)}
             </div>
             <div style="color: #666;">
                 <div style="margin-bottom: 4px;">
-                    <span style="color: #888;">${indicatorInfo}:</span>
-                    <span style="font-weight: 600; color: #333;">${formattedValue}</span>
+                    <span style="color: #888;">${escapeHtml(indicatorInfo)}:</span>
+                    <span style="font-weight: 600; color: #333;">${escapeHtml(formattedValue)}</span>
                 </div>
                 <div style="font-size: 11px; color: #999;">
-                    ${year}年データ
+                    ${escapeHtml(year)}年データ
                 </div>
             </div>
         `;

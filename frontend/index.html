@@ -1740,6 +1740,29 @@
     <div class="toast" id="toast"></div>
 
     <script>
+        // === Security Utilities ===
+        // Escape dynamic strings before inserting into innerHTML
+        function escapeHtml(str) {
+            if (str == null) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+        // Escape strings for use inside JS string literals within HTML attributes
+        // e.g. onclick="fn('${escapeJsString(val)}')"
+        function escapeJsString(str) {
+            if (str == null) return '';
+            return String(str)
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/"/g, '\\"')
+                .replace(/</g, '\\x3c')
+                .replace(/>/g, '\\x3e');
+        }
+
         // APIベースURL
         const API_BASE = 'http://localhost:5099';
 
@@ -2116,8 +2139,8 @@
                     conditions[conditionId].indicatorNames[ind.cdCat01] = ind.name;
                     html += `
                         <label class="indicator-item">
-                            <input type="checkbox" value="${ind.cdCat01}" data-condition="${conditionId}" onchange="onIndicatorChange(${conditionId})">
-                            ${ind.cdCat01}: ${ind.name}
+                            <input type="checkbox" value="${escapeHtml(ind.cdCat01)}" data-condition="${conditionId}" onchange="onIndicatorChange(${conditionId})">
+                            ${escapeHtml(ind.cdCat01)}: ${escapeHtml(ind.name)}
                         </label>
                     `;
                 });
@@ -2262,7 +2285,7 @@
             }
 
             select.innerHTML = values.map(v =>
-                `<option value="${v}">${displayName(v)}</option>`
+                `<option value="${escapeHtml(v)}">${escapeHtml(displayName(v))}</option>`
             ).join('');
 
             if (values.length > 0) {
@@ -2380,10 +2403,10 @@
                 const isSelected = selectedMunicipalities.has(city.code);
                 html += `
                     <label class="municipality-city-item ${isSelected ? 'selected' : ''}">
-                        <input type="checkbox" value="${city.code}"
+                        <input type="checkbox" value="${escapeHtml(city.code)}"
                                ${isSelected ? 'checked' : ''}
-                               onchange="toggleMunicipalitySelection('${city.code}', '${city.name}', '${PREFECTURE_NAMES[prefCode]}', this.checked)">
-                        ${city.name}
+                               onchange="toggleMunicipalitySelection('${escapeJsString(city.code)}', '${escapeJsString(city.name)}', '${escapeJsString(PREFECTURE_NAMES[prefCode])}', this.checked)">
+                        ${escapeHtml(city.name)}
                     </label>
                 `;
             });
@@ -2418,8 +2441,8 @@
             selectedMunicipalities.forEach((info, code) => {
                 html += `
                     <span class="selected-municipality-tag">
-                        ${info.prefName} ${info.name}
-                        <span class="remove" onclick="removeMunicipality('${code}')">&times;</span>
+                        ${escapeHtml(info.prefName)} ${escapeHtml(info.name)}
+                        <span class="remove" onclick="removeMunicipality('${escapeJsString(code)}')">&times;</span>
                     </span>
                 `;
             });
@@ -2477,10 +2500,10 @@
                     const isSelected = selectedMunicipalities.has(city.code);
                     html += `
                         <label class="municipality-city-item ${isSelected ? 'selected' : ''}">
-                            <input type="checkbox" value="${city.code}"
+                            <input type="checkbox" value="${escapeHtml(city.code)}"
                                    ${isSelected ? 'checked' : ''}
-                                   onchange="toggleMunicipalitySelection('${city.code}', '${city.name}', '${city.prefecture_name}', this.checked)">
-                            <span style="color: #666; font-size: 11px;">${city.prefecture_name}</span> ${city.name}
+                                   onchange="toggleMunicipalitySelection('${escapeJsString(city.code)}', '${escapeJsString(city.name)}', '${escapeJsString(city.prefecture_name)}', this.checked)">
+                            <span style="color: #666; font-size: 11px;">${escapeHtml(city.prefecture_name)}</span> ${escapeHtml(city.name)}
                         </label>
                     `;
                 });
@@ -2694,7 +2717,7 @@
             headerHTML += `<th class="rank-cell">順位</th>`;
             headerHTML += `<th>${rowLabel}</th>`;
             colValues.forEach(col => {
-                headerHTML += `<th>${col.name}</th>`;
+                headerHTML += `<th>${escapeHtml(col.name)}</th>`;
             });
             headerHTML += '</tr>';
             thead.innerHTML = headerHTML;
@@ -2710,7 +2733,7 @@
             rowValues.forEach((row, idx) => {
                 bodyHTML += '<tr>';
                 bodyHTML += `<td class="rank-cell">${idx + 1}</td>`;
-                bodyHTML += `<td>${row.name}</td>`;
+                bodyHTML += `<td>${escapeHtml(row.name)}</td>`;
                 colValues.forEach(col => {
                     const val = lookup[`${row.key}|${col.key}`];
                     bodyHTML += `<td class="value-cell">${formatValue(val)}</td>`;
@@ -2945,18 +2968,18 @@
 
             // 散布図セレクト
             const indicatorOptions = indicators.map(i =>
-                `<option value="${i}">${availableIndicatorNames[i] || i}</option>`
+                `<option value="${escapeHtml(i)}">${escapeHtml(availableIndicatorNames[i] || i)}</option>`
             ).join('');
             document.getElementById('scatterX').innerHTML = indicatorOptions;
             document.getElementById('scatterY').innerHTML = indicatorOptions;
             if (indicators.length > 1) {
                 document.getElementById('scatterY').selectedIndex = 1;
             }
-            document.getElementById('scatterYear').innerHTML = years.map(y => `<option value="${y}">${y}年</option>`).join('');
+            document.getElementById('scatterYear').innerHTML = years.map(y => `<option value="${escapeHtml(y)}">${escapeHtml(y)}年</option>`).join('');
 
             // 時系列セレクト
             document.getElementById('timeseriesRegion').innerHTML = regions.map(r =>
-                `<option value="${r}">${PREFECTURE_NAMES[r] || r}</option>`
+                `<option value="${escapeHtml(r)}">${escapeHtml(PREFECTURE_NAMES[r] || r)}</option>`
             ).join('');
 
             // 時系列の指標チェックボックス
@@ -2965,14 +2988,14 @@
                 const name = availableIndicatorNames[ind] || ind;
                 const color = colors[idx % colors.length];
                 return `<label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                    <input type="checkbox" value="${ind}" checked onchange="updateTimeseriesChart()" style="accent-color: ${color};">
-                    <span style="color: ${color}; font-weight: 500;">${name}</span>
+                    <input type="checkbox" value="${escapeHtml(ind)}" checked onchange="updateTimeseriesChart()" style="accent-color: ${color};">
+                    <span style="color: ${color}; font-weight: 500;">${escapeHtml(name)}</span>
                 </label>`;
             }).join('');
 
             // 棒グラフセレクト
             document.getElementById('barIndicator').innerHTML = indicatorOptions;
-            document.getElementById('barYear').innerHTML = years.map(y => `<option value="${y}">${y}年</option>`).join('');
+            document.getElementById('barYear').innerHTML = years.map(y => `<option value="${escapeHtml(y)}">${escapeHtml(y)}年</option>`).join('');
 
             // 相関行列を計算
             updateCorrelationMatrix();
@@ -3007,18 +3030,20 @@
             let html = '<table class="correlation-table"><tr><th></th>';
             indicators.forEach(ind => {
                 const name = availableIndicatorNames[ind] || ind;
-                html += `<th title="${name}">${name.slice(0, 10)}${name.length > 10 ? '...' : ''}</th>`;
+                const eName = escapeHtml(name);
+                html += `<th title="${eName}">${escapeHtml(name.slice(0, 10))}${name.length > 10 ? '...' : ''}</th>`;
             });
             html += '</tr>';
 
             indicators.forEach(ind1 => {
                 const name1 = availableIndicatorNames[ind1] || ind1;
-                html += `<tr><th title="${name1}">${name1.slice(0, 10)}${name1.length > 10 ? '...' : ''}</th>`;
+                const eName1 = escapeHtml(name1);
+                html += `<tr><th title="${eName1}">${escapeHtml(name1.slice(0, 10))}${name1.length > 10 ? '...' : ''}</th>`;
                 indicators.forEach(ind2 => {
                     const corr = calculateCorrelation(vectors[ind1], vectors[ind2]);
                     const colorClass = corr > 0.3 ? 'correlation-positive' :
                                        corr < -0.3 ? 'correlation-negative' : 'correlation-neutral';
-                    html += `<td class="${colorClass}" title="${ind1} vs ${ind2}">${corr.toFixed(2)}</td>`;
+                    html += `<td class="${colorClass}" title="${escapeHtml(ind1)} vs ${escapeHtml(ind2)}">${corr.toFixed(2)}</td>`;
                 });
                 html += '</tr>';
             });
@@ -3264,7 +3289,7 @@
         function showEmpty(message) {
             const el = document.getElementById('emptyMessage');
             // 改行を<br>に変換して複数行メッセージをサポート
-            el.querySelector('p').innerHTML = message.replace(/\n/g, '<br>');
+            el.querySelector('p').innerHTML = escapeHtml(message).replace(/\n/g, '<br>');
             el.style.display = 'block';
             document.getElementById('tableContainer').style.display = 'none';
         }
