@@ -235,7 +235,7 @@ def main():
         print("Please set it in .env file or environment variable.")
         sys.exit(1)
 
-    print(f"API Key: {api_key[:8]}...")
+    print("API Key: [configured]")
 
     municipalities = fetch_municipalities(api_key)
 

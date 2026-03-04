@@ -121,7 +121,7 @@ def main():
 
     try:
         api_key = get_api_key()
-        print(f"API Key: {api_key[:8]}...")
+        print("API Key: [configured]")
     except ValueError as e:
         print(f"Error: {e}")
         return
