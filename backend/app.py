@@ -49,7 +49,7 @@ CONFIG = {
 
 # 指標設定をロード
 INDICATORS_CONFIG = None
-INDICATORS_PATH = Path(__file__).parent.parent / 'config' / 'estat_indicators.json'
+INDICATORS_PATH = Path(__file__).resolve().parent.parent / 'config' / 'estat_indicators.json'
 
 
 def load_indicators_config():
