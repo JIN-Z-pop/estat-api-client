@@ -27,7 +27,14 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+CORS(app, resources={r"/api/*": {"origins": ["http://localhost:*", "http://127.0.0.1:*"]}})
+
+def _safe_int(param_name: str, default: int, lo: int = 0, hi: int = 1000) -> int:
+    """Parse request arg as int with bounds clamping."""
+    try:
+        return min(max(int(request.args.get(param_name, default)), lo), hi)
+    except (ValueError, TypeError):
+        return default
 
 # =============================================================================
 # 設定
@@ -239,8 +246,8 @@ def get_indicators():
     # フィルタリング
     field = request.args.get('field')  # 分野でフィルタ
     keyword = request.args.get('q', '').lower()  # キーワード検索
-    limit = int(request.args.get('limit', 100))
-    offset = int(request.args.get('offset', 0))
+    limit = _safe_int('limit', 100, 1, 1000)
+    offset = _safe_int('offset', 0, 0, 100000)
 
     result = []
     for cd_cat01, info in indicators.items():
@@ -695,7 +702,7 @@ def get_municipalities_by_prefecture(pref_code: str):
 def search_municipalities():
     """市区町村を検索"""
     query = request.args.get('q', '').strip()
-    limit = int(request.args.get('limit', 50))
+    limit = _safe_int('limit', 50, 1, 500)
 
     if not query:
         return jsonify({
@@ -739,8 +746,8 @@ def search_municipalities():
 @app.route('/api/municipalities')
 def get_all_municipalities():
     """全市区町村一覧を取得（ページネーション対応）"""
-    limit = int(request.args.get('limit', 100))
-    offset = int(request.args.get('offset', 0))
+    limit = _safe_int('limit', 100, 1, 1000)
+    offset = _safe_int('offset', 0, 0, 100000)
     pref_code = request.args.get('prefecture')
     level = request.args.get('level')
 
@@ -825,7 +832,7 @@ if __name__ == '__main__':
         print()
 
     app.run(
-        host='0.0.0.0',
+        host=os.environ.get('FLASK_HOST', '127.0.0.1'),
         port=CONFIG['port'],
-        debug=True
+        debug=os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
     )

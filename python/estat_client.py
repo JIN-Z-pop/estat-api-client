@@ -39,7 +39,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Union
 
 __version__ = "1.0.0"
-__author__ = "Jin Kim & ClaudeCode"
+__author__ = "JIN-Z-pop and his merry AI brothers"
 
 # Prefecture code mapping
 PREFECTURE_CODES = {
