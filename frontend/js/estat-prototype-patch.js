@@ -7,7 +7,14 @@
 
 (function() {
     'use strict';
-    
+
+    // Security: escape HTML entities to prevent XSS
+    function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+
     // Wait for estatIntegration to be available
     function applyPatch() {
         if (typeof window.estatIntegration === 'undefined') {
@@ -92,11 +99,11 @@
                 var item = document.createElement('div');
                 item.className = 'estat-suggestion-item';
                 item.style.cssText = 'padding: 8px; border-bottom: 1px solid #eee; cursor: pointer;';
-                item.innerHTML = 
-                    '<div style="font-weight: bold; color: #333;">' + title + '</div>' +
+                item.innerHTML =
+                    '<div style="font-weight: bold; color: #333;">' + escapeHtml(title) + '</div>' +
                     '<div style="font-size: 12px; color: #666;">' +
-                        '<span>' + categoryText + '</span>' +
-                        '<span style="margin-left: 8px;">' + org + '</span>' +
+                        '<span>' + escapeHtml(categoryText) + '</span>' +
+                        '<span style="margin-left: 8px;">' + escapeHtml(org) + '</span>' +
                     '</div>';
                 
                 item.onmouseover = function() { this.style.background = '#f5f5f5'; };
@@ -249,7 +256,7 @@
                 regionDiv.style.cssText = 'padding: 12px; border-bottom: 1px solid #eee; background: #fafafa;';
 
                 var html = '<div style="font-weight: bold; color: #333; margin-bottom: 8px;">' +
-                           '<i class="fas fa-map-marker-alt"></i> ' + regionName + ' (' + regionCode + ')' +
+                           '<i class="fas fa-map-marker-alt"></i> ' + escapeHtml(regionName) + ' (' + escapeHtml(regionCode) + ')' +
                            '</div>';
 
                 // 各指標のデータを表示
@@ -260,14 +267,14 @@
                     var unit = indicatorData.unit || '';
 
                     html += '<div style="margin-left: 16px; margin-bottom: 6px;">';
-                    html += '<span style="color: #666;">' + indicatorName + ':</span> ';
+                    html += '<span style="color: #666;">' + escapeHtml(indicatorName) + ':</span> ';
 
                     if (dataPoints.length > 0) {
                         var latestData = dataPoints[dataPoints.length - 1];
                         var value = latestData.value || 0;
                         var formattedValue = value.toLocaleString('ja-JP');
-                        html += '<span style="font-weight: bold; color: #2196F3;">' + formattedValue + ' ' + unit + '</span>';
-                        html += ' <span style="font-size: 11px; color: #999;">(' + (latestData.year || '-') + '年)</span>';
+                        html += '<span style="font-weight: bold; color: #2196F3;">' + escapeHtml(formattedValue) + ' ' + escapeHtml(unit) + '</span>';
+                        html += ' <span style="font-size: 11px; color: #999;">(' + escapeHtml(latestData.year || '-') + '年)</span>';
                     } else {
                         html += '<span style="color: #999;">データなし</span>';
                     }
@@ -471,7 +478,7 @@
 
             var html = '<div style="padding:10px;min-width:220px;font-family:sans-serif;">';
             html += '<h4 style="margin:0 0 10px 0;color:#333;border-bottom:2px solid #4CAF50;padding-bottom:5px;">';
-            html += '<i class="fas fa-map-marker-alt" style="color:#4CAF50;margin-right:5px;"></i>' + name;
+            html += '<i class="fas fa-map-marker-alt" style="color:#4CAF50;margin-right:5px;"></i>' + escapeHtml(name);
             html += '</h4>';
 
             var hasData = false;
@@ -492,11 +499,11 @@
                 var source = indicatorData.source || 'e-Stat';
 
                 html += '<div style="margin-bottom:8px;">';
-                html += '<div style="color:#666;font-size:12px;">' + indicatorName + '</div>';
+                html += '<div style="color:#666;font-size:12px;">' + escapeHtml(indicatorName) + '</div>';
                 html += '<div style="font-size:18px;font-weight:bold;color:#2196F3;">';
-                html += value.toLocaleString('ja-JP') + ' <span style="font-size:12px;font-weight:normal;">' + unit + '</span>';
+                html += escapeHtml(value.toLocaleString('ja-JP')) + ' <span style="font-size:12px;font-weight:normal;">' + escapeHtml(unit) + '</span>';
                 html += '</div>';
-                html += '<div style="font-size:10px;color:#999;">' + year + '年 / ' + source + '</div>';
+                html += '<div style="font-size:10px;color:#999;">' + escapeHtml(year) + '年 / ' + escapeHtml(source) + '</div>';
                 html += '</div>';
             });
 

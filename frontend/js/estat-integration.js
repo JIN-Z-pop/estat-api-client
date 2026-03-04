@@ -3,6 +3,16 @@
  * integrated_view.htmlの統計データセクションを拡張
  */
 
+// Security: escape HTML entities to prevent XSS
+function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+function escapeJsString(str) {
+    if (str == null) return '';
+    return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/</g, '\\x3c').replace(/>/g, '\\x3e');
+}
+
 class EStatIntegration {
     constructor() {
         this.apiEndpoint = 'http://localhost:5001/api';
@@ -464,20 +474,20 @@ class EStatIntegration {
             const subItems = this.categorySubItems[categoryCode];
             
             for (const [subCat, items] of Object.entries(subItems)) {
-                html += `<option value="${subCat}">${subCat}</option>`;
+                html += `<option value="${escapeHtml(subCat)}">${escapeHtml(subCat)}</option>`;
             }
-            
+
             subcategorySelect.innerHTML = html;
             subItemsDiv.innerHTML = '';
         } else {
             // サブカテゴリがない場合は非表示
             subcategoryContainer.style.display = 'none';
         }
-        
+
         // カテゴリでフィルタリング
         this.filterByCategory(categoryCode);
     }
-    
+
     /**
      * サブカテゴリ変更時の処理
      */
@@ -499,8 +509,8 @@ class EStatIntegration {
             items.forEach((item, index) => {
                 html += `
                     <label class="estat-checkbox-label">
-                        <input type="checkbox" id="sub-item-${index}" value="${item}" class="estat-sub-item-checkbox">
-                        <span>${item}</span>
+                        <input type="checkbox" id="sub-item-${index}" value="${escapeHtml(item)}" class="estat-sub-item-checkbox">
+                        <span>${escapeHtml(item)}</span>
                     </label>
                 `;
             });
@@ -571,8 +581,8 @@ class EStatIntegration {
             const name = prefectures[parseInt(code) - 1];
             html += `
                 <span class="estat-tag">
-                    ${name}
-                    <button class="estat-tag-remove" onclick="estatIntegration.removeRegion('${code}')">×</button>
+                    ${escapeHtml(name)}
+                    <button class="estat-tag-remove" onclick="estatIntegration.removeRegion('${escapeJsString(code)}')">×</button>
                 </span>
             `;
         });
@@ -591,8 +601,8 @@ class EStatIntegration {
             const name = this.categories[code];
             html += `
                 <span class="estat-tag">
-                    ${name}
-                    <button class="estat-tag-remove" onclick="estatIntegration.removeCategory('${code}')">×</button>
+                    ${escapeHtml(name)}
+                    <button class="estat-tag-remove" onclick="estatIntegration.removeCategory('${escapeJsString(code)}')">×</button>
                 </span>
             `;
         });
@@ -616,12 +626,12 @@ class EStatIntegration {
         div.id = `city-selector-${prefectureCode}`;
         div.className = 'estat-city-selector-group';
         div.innerHTML = `
-            <label class="estat-sub-label">${prefectureName}の市区町村（任意）:</label>
+            <label class="estat-sub-label">${escapeHtml(prefectureName)}の市区町村（任意）:</label>
             <div class="estat-city-checkboxes">
                 ${cities.map((city, index) => `
                     <label class="estat-checkbox-label">
-                        <input type="checkbox" value="${city}" data-prefecture="${prefectureCode}" class="city-checkbox">
-                        <span>${city}</span>
+                        <input type="checkbox" value="${escapeHtml(city)}" data-prefecture="${escapeHtml(prefectureCode)}" class="city-checkbox">
+                        <span>${escapeHtml(city)}</span>
                     </label>
                 `).join('')}
             </div>
@@ -645,20 +655,20 @@ class EStatIntegration {
         div.id = `subcategory-selector-${categoryCode}`;
         div.className = 'estat-subcategory-selector-group';
         
-        let html = `<label class="estat-sub-label">${categoryName}の詳細選択（任意）:</label>`;
-        
+        let html = `<label class="estat-sub-label">${escapeHtml(categoryName)}の詳細選択（任意）:</label>`;
+
         for (const [subCat, items] of Object.entries(subItems)) {
             html += `
                 <div class="estat-subcategory-section">
-                    <div class="estat-subcategory-name">${subCat}</div>
+                    <div class="estat-subcategory-name">${escapeHtml(subCat)}</div>
                     <div class="estat-item-checkboxes">
                         ${items.map((item, index) => `
                             <label class="estat-checkbox-label">
-                                <input type="checkbox" value="${item}" 
-                                       data-category="${categoryCode}" 
-                                       data-subcategory="${subCat}" 
+                                <input type="checkbox" value="${escapeHtml(item)}"
+                                       data-category="${escapeHtml(categoryCode)}"
+                                       data-subcategory="${escapeHtml(subCat)}"
                                        class="item-checkbox">
-                                <span>${item}</span>
+                                <span>${escapeHtml(item)}</span>
                             </label>
                         `).join('')}
                     </div>
@@ -733,13 +743,13 @@ class EStatIntegration {
         
         let html = `<option value="">すべての市区町村</option>`;
         if (cities.length > 0) {
-            html += `<optgroup label="${prefectureName}の主要都市">`;
+            html += `<optgroup label="${escapeHtml(prefectureName)}の主要都市">`;
             cities.forEach(city => {
-                html += `<option value="${city}">${city}</option>`;
+                html += `<option value="${escapeHtml(city)}">${escapeHtml(city)}</option>`;
             });
             html += `</optgroup>`;
         }
-        
+
         citySelect.innerHTML = html;
     }
     
@@ -760,9 +770,9 @@ class EStatIntegration {
             const subItems = this.categorySubItems[categoryCode];
             
             for (const [subCat, items] of Object.entries(subItems)) {
-                html += `<option value="${subCat}">${subCat}</option>`;
+                html += `<option value="${escapeHtml(subCat)}">${escapeHtml(subCat)}</option>`;
             }
-            
+
             subcategorySelect.innerHTML = html;
             subItemsDiv.innerHTML = '';
         } else {
@@ -770,7 +780,7 @@ class EStatIntegration {
             subcategoryContainer.style.display = 'none';
         }
     }
-    
+
     /**
      * 詳細検索内のサブカテゴリ変更時の処理
      */
@@ -791,8 +801,8 @@ class EStatIntegration {
             items.forEach((item, index) => {
                 html += `
                     <label class="estat-checkbox-label">
-                        <input type="checkbox" id="sub-item-advanced-${index}" value="${item}" class="estat-sub-item-checkbox-advanced">
-                        <span>${item}</span>
+                        <input type="checkbox" id="sub-item-advanced-${index}" value="${escapeHtml(item)}" class="estat-sub-item-checkbox-advanced">
+                        <span>${escapeHtml(item)}</span>
                     </label>
                 `;
             });
@@ -1118,10 +1128,10 @@ class EStatIntegration {
             const item = document.createElement('div');
             item.className = 'estat-suggestion-item';
             item.innerHTML = `
-                <div class="estat-stat-title">${stat.title}</div>
+                <div class="estat-stat-title">${escapeHtml(stat.title)}</div>
                 <div class="estat-stat-meta">
-                    <span class="estat-stat-category">${stat.category}</span>
-                    <span class="estat-stat-org">${stat.organization || ''}</span>
+                    <span class="estat-stat-category">${escapeHtml(stat.category)}</span>
+                    <span class="estat-stat-org">${escapeHtml(stat.organization || '')}</span>
                 </div>
             `;
             item.onclick = () => this.addStatistic(stat);
@@ -1163,10 +1173,10 @@ class EStatIntegration {
             item.className = 'estat-selected-item';
             item.innerHTML = `
                 <div class="estat-item-info">
-                    <div class="estat-item-title">${stat.title}</div>
-                    <div class="estat-item-category">${stat.category}</div>
+                    <div class="estat-item-title">${escapeHtml(stat.title)}</div>
+                    <div class="estat-item-category">${escapeHtml(stat.category)}</div>
                 </div>
-                <button class="estat-remove-btn" onclick="estatIntegration.removeStatistic('${id}')">
+                <button class="estat-remove-btn" onclick="estatIntegration.removeStatistic('${escapeJsString(id)}')">
                     <i class="fas fa-times"></i>
                 </button>
             `;
@@ -1273,16 +1283,16 @@ class EStatIntegration {
         
         // ヘッダー
         data.columns.forEach(col => {
-            html += `<th>${col}</th>`;
+            html += `<th>${escapeHtml(col)}</th>`;
         });
         html += '</tr></thead>';
-        
+
         // データ行（最初の20行）
         html += '<tbody>';
         data.data.slice(0, 20).forEach(row => {
             html += '<tr>';
             data.columns.forEach(col => {
-                html += `<td>${row[col] || '-'}</td>`;
+                html += `<td>${escapeHtml(row[col] || '-')}</td>`;
             });
             html += '</tr>';
         });
@@ -2471,7 +2481,7 @@ class EStatIntegration {
                 const displayName = indicatorInfo.name || indicatorInfo.item || indicatorKey;
                 canvas.parentElement.innerHTML = `
                     <div class="chart-error">
-                        <p>${displayName}</p>
+                        <p>${escapeHtml(displayName)}</p>
                         <p style="color: #ef4444; font-size: 12px;">データ取得エラー</p>
                     </div>
                 `;
@@ -3921,16 +3931,16 @@ class EStatIntegration {
         // 地域フィルター
         const regionFilter = document.getElementById('customRegionFilter');
         if (regionFilter) {
-            regionFilter.innerHTML = Object.keys(data.regions).map(region => 
-                `<option value="${region}" selected>${region}</option>`
+            regionFilter.innerHTML = Object.keys(data.regions).map(region =>
+                `<option value="${escapeHtml(region)}" selected>${escapeHtml(region)}</option>`
             ).join('');
         }
         
         // 指標フィルター
         const indicatorFilter = document.getElementById('customIndicatorFilter');
         if (indicatorFilter) {
-            indicatorFilter.innerHTML = Object.entries(data.indicators).map(([key, info]) => 
-                `<option value="${key}" selected>${info.item}</option>`
+            indicatorFilter.innerHTML = Object.entries(data.indicators).map(([key, info]) =>
+                `<option value="${escapeHtml(key)}" selected>${escapeHtml(info.item)}</option>`
             ).join('');
         }
         
@@ -3938,8 +3948,8 @@ class EStatIntegration {
         const yearFilter = document.getElementById('customYearFilter');
         if (yearFilter) {
             const years = this.getAvailableYears(data);
-            yearFilter.innerHTML = years.map(year => 
-                `<option value="${year}" selected>${year}年</option>`
+            yearFilter.innerHTML = years.map(year =>
+                `<option value="${escapeHtml(year)}" selected>${escapeHtml(year)}年</option>`
             ).join('');
         }
     }
