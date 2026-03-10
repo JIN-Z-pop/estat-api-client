@@ -70,10 +70,6 @@ NUL
 **/NUL
 
 # Internal/temporary files
-instruction_*.txt
-wezterm_*.txt
-PROJECT_*.md
-ISSUES.md
 
 # Duplicate config files
 config/estat_indicators_*.json
